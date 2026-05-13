@@ -36,7 +36,7 @@ def create_app(config_name='default'):
     login_manager.init_app(app)
     bcrypt.init_app(app)
     migrate.init_app(app, db)
-    socketio.init_app(app, cors_allowed_origins="*")
+    socketio.init_app(app, cors_allowed_origins="*", async_mode="threading")
 
     # Register blueprints
     from app.main import main as main_bp

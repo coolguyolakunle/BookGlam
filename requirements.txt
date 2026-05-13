@@ -8,7 +8,6 @@ cloudinary==1.44.2
 colorama==0.4.6
 dnspython==2.8.0
 email-validator==2.3.0
-eventlet==0.41.0
 Flask==3.0.3
 Flask-Bcrypt==1.0.1
 Flask-Login==0.6.3
