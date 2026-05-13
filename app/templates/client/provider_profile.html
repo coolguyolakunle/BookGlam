@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% block title %}{{ profile.user.full_name }} — BookGlam{% endblock %}
+{% block content %}
+<div class="dash-layout flex min-h-screen" style="background:#FAF6F0;">
+  <aside id="dash-sidebar" style="width:230px; background:#fff; border-right:1px solid #f0e8df; flex-shrink:0;" class="flex flex-col py-6 px-3">
+    <div class="px-3 mb-6"><div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:#C9A84C; font-weight:700;">Client Panel</div></div>
+    <a href="{{ url_for('client.dashboard') }}" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="{{ url_for('client.book') }}" class="sidebar-link"><i class="fas fa-plus-circle"></i> Book Service</a>
+    <a href="{{ url_for('client.bookings') }}" class="sidebar-link"><i class="fas fa-calendar-alt"></i> My Bookings</a>
+    <a href="{{ url_for('client.profile') }}" class="sidebar-link"><i class="fas fa-user-circle"></i> Profile</a>
+    <div class="mt-auto pt-4 border-t border-gray-100">
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link" style="color:#ef4444;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+
+  <main class="flex-1 p-5 md:p-8">
+    <a href="{{ request.referrer or url_for('client.bookings') }}" style="color:#6B5E52; font-size:0.875rem;" class="inline-flex items-center gap-2 mb-6 hover:text-gray-900 transition-colors">
+      <i class="fas fa-arrow-left text-xs"></i> Back
+    </a>
+
+    <section class="card-glam overflow-hidden mb-6">
+      <div style="background:linear-gradient(135deg,#1A1410,#2E1F14); color:#fff;" class="p-6 md:p-8">
+        <div class="flex flex-col lg:flex-row lg:items-center gap-6">
+          {% if profile.user.avatar %}
+          <img src="{{ profile.user.avatar }}" alt="{{ profile.user.full_name }}" style="width:124px; height:124px; border-radius:50%; object-fit:cover; border:3px solid rgba(201,168,76,0.75); flex-shrink:0;" />
+          {% else %}
+          <div style="width:124px; height:124px; border-radius:50%; background:linear-gradient(135deg,#C9A84C,#E8C96B); display:flex; align-items:center; justify-content:center; font-family:'Playfair Display',serif; font-weight:700; font-size:2.6rem; color:#1A1410; flex-shrink:0;">{{ profile.user.full_name[0] }}</div>
+          {% endif %}
+          <div class="flex-1">
+            <div class="flex flex-wrap items-center gap-2 mb-2">
+              <h1 style="font-family:'Playfair Display',serif; font-size:clamp(2rem,5vw,3.1rem); font-weight:700; line-height:1;">{{ profile.user.full_name }}</h1>
+              {% if profile.is_verified %}
+              <span style="background:rgba(16,185,129,0.16); color:#bbf7d0; padding:4px 10px; border-radius:50px; font-size:0.75rem; font-weight:700;"><i class="fas fa-check-circle mr-1"></i>Verified</span>
+              {% endif %}
+            </div>
+            <div class="flex flex-wrap gap-3" style="color:#e8dccf; font-size:0.94rem;">
+              <span><i class="fas fa-star" style="color:#f59e0b;"></i> {{ "%.1f"|format(stats.rating) }} rating</span>
+              <span>{{ stats.years_experience }} years experience</span>
+              <span>{{ stats.completed_jobs }} completed jobs</span>
+              <span>{{ stats.repeat_customers }} repeat customers</span>
+            </div>
+            {% if profile.location %}
+            <div style="color:#C9A84C; margin-top:10px;"><i class="fas fa-map-marker-alt mr-2"></i>{{ profile.location }}</div>
+            {% endif %}
+          </div>
+          {% if booking and not booking.provider %}
+          <form method="POST" action="{{ url_for('client.choose_provider', booking_id=booking.id, provider_id=profile.id) }}">
+            <button type="submit" class="btn-gold px-6 py-3 text-sm whitespace-nowrap">Select Provider</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="grid sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x" style="border-color:#f0e8df;">
+        {% for label, value in [('Rating', "%.1f"|format(stats.rating)), ('Experience', stats.years_experience ~ ' yrs'), ('Jobs', stats.completed_jobs), ('Repeat', stats.repeat_customers ~ '%')] %}
+        <div class="p-5">
+          <div style="font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em; color:#8a7a6a; font-weight:700;">{{ label }}</div>
+          <div style="font-family:'Playfair Display',serif; font-size:1.55rem; font-weight:700; color:#1A1410;">{{ value }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <div class="grid lg:grid-cols-3 gap-6">
+      <section class="lg:col-span-2 space-y-6">
+        <div class="card-glam p-6">
+          <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; color:#C9A84C; font-weight:700; margin-bottom:10px;">About</div>
+          <p style="color:#6B5E52; line-height:1.8;">{{ profile.bio or 'A polished BookGlam provider focused on punctual service, clean finishes and a calm client experience.' }}</p>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <h2 style="font-family:'Playfair Display',serif; font-size:1.45rem; font-weight:700;">Portfolio Gallery</h2>
+            <span style="color:#6B5E52; font-size:0.85rem;">{{ portfolio_media|length }} item{{ 's' if portfolio_media|length != 1 }}</span>
+          </div>
+          {% if portfolio_media %}
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {% for item in portfolio_media %}
+            <div class="card-glam overflow-hidden">
+              <img src="{{ item.url }}" alt="{{ profile.user.full_name }} work" style="width:100%; aspect-ratio:1/1; object-fit:cover; display:block;" />
+              {% if item.caption %}<div class="p-3" style="color:#6B5E52; font-size:0.82rem;">{{ item.caption }}</div>{% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="card-glam p-12 text-center" style="color:#6B5E52;">
+            <i class="fas fa-images" style="font-size:2rem; color:#d4c4b0; display:block; margin-bottom:10px;"></i>
+            Portfolio uploads are coming soon.
+          </div>
+          {% endif %}
+        </div>
+
+        <div>
+          <h2 style="font-family:'Playfair Display',serif; font-size:1.45rem; font-weight:700; margin-bottom:4px;">Reviews</h2>
+          <p style="color:#6B5E52; margin-bottom:16px;">Recent client feedback from completed BookGlam appointments.</p>
+          {% if reviews %}
+          <div class="space-y-4">
+            {% for review in reviews %}
+            <div class="card-glam p-5">
+              <div class="flex items-center justify-between gap-3 mb-2">
+                <div style="font-weight:700;">{{ review.booking.client.full_name if review.booking and review.booking.client else 'BookGlam Client' }}</div>
+                <div style="color:#f59e0b; font-size:0.9rem;">{{ '★' * review.rating }}{{ '☆' * (5 - review.rating) }}</div>
+              </div>
+              {% if review.comment %}<p style="color:#6B5E52; line-height:1.65;">{{ review.comment }}</p>{% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="card-glam p-8" style="color:#6B5E52;">No reviews yet, but this provider is ready for their first BookGlam rating.</div>
+          {% endif %}
+        </div>
+      </section>
+
+      <aside class="space-y-5">
+        <div class="card-glam p-5">
+          <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; color:#C9A84C; font-weight:700; margin-bottom:12px;">Specialties</div>
+          <div class="flex flex-wrap gap-2">
+            {% for specialty in stats.specialties %}
+            <span style="background:rgba(201,168,76,0.12); color:#7a5e1d; padding:7px 10px; border-radius:50px; font-size:0.8rem; font-weight:700;">{{ specialty }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="card-glam p-5">
+          <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; color:#C9A84C; font-weight:700; margin-bottom:12px;">Availability Snapshot</div>
+          <div class="space-y-3 text-sm">
+            <div class="flex justify-between"><span style="color:#6B5E52;">Distance</span><strong>{{ stats.distance }}km</strong></div>
+            <div class="flex justify-between"><span style="color:#6B5E52;">ETA</span><strong>{{ stats.eta }} mins</strong></div>
+            <div class="flex justify-between"><span style="color:#6B5E52;">Status</span><strong style="color:{% if profile.is_online %}#059669{% else %}#8a7a6a{% endif %};">{{ 'Online now' if profile.is_online else 'Available by request' }}</strong></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+{% endblock %}

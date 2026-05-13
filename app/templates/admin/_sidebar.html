@@ -1,0 +1,17 @@
+{% macro admin_sidebar(active_endpoint) %}
+<aside style="width:230px; background:#1A1410; flex-shrink:0;" class="hidden md:flex flex-col py-6 px-3">
+  <div class="px-3 mb-8">
+    <div style="font-family:'Playfair Display',serif; font-weight:700; font-size:1.2rem; color:#fff;">Book<span style="color:#C9A84C;">Glam</span></div>
+    <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:#C9A84C; font-weight:700; margin-top:4px;">Admin Panel</div>
+  </div>
+  <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link {% if active_endpoint == 'dashboard' %}active{% endif %}" style="color:#c4b49e;"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+  <a href="{{ url_for('admin.providers') }}" class="sidebar-link {% if active_endpoint == 'providers' %}active{% endif %}" style="color:#c4b49e;"><i class="fas fa-user-check"></i> Providers</a>
+  <a href="{{ url_for('admin.users') }}" class="sidebar-link {% if active_endpoint == 'users' %}active{% endif %}" style="color:#c4b49e;"><i class="fas fa-users"></i> Users</a>
+  <a href="{{ url_for('admin.bookings') }}" class="sidebar-link {% if active_endpoint == 'bookings' %}active{% endif %}" style="color:#c4b49e;"><i class="fas fa-calendar-alt"></i> Bookings</a>
+  <a href="{{ url_for('admin.withdrawals') }}" class="sidebar-link {% if active_endpoint == 'withdrawals' %}active{% endif %}" style="color:#c4b49e;"><i class="fas fa-money-bill-wave"></i> Withdrawals</a>
+  <a href="{{ url_for('admin.services') }}" class="sidebar-link {% if active_endpoint == 'services' %}active{% endif %}" style="color:#c4b49e;"><i class="fas fa-cut"></i> Services</a>
+  <div class="mt-auto pt-4" style="border-top:1px solid #2e2520;">
+    <a href="{{ url_for('auth.logout') }}" class="sidebar-link" style="color:#ef6b6b;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+  </div>
+</aside>
+{% endmacro %}

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}BookGlam{% endblock %} — On-Demand Beauty</title>
+  <link rel="icon" href="{{ url_for('static', filename='img/favicon.ico')}}" type="image/x-icon">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/bookglam.css') }}" />
+  <style>
+    :root {
+      --gold: #C9A84C;
+      --gold-light: #E8C96B;
+      --gold-dark: #9A7A2E;
+      --cream: #FAF6F0;
+      --charcoal: #1A1410;
+      --warm-gray: #6B5E52;
+      --blush: #F5E6DC;
+    }
+    * { box-sizing: border-box; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--charcoal); }
+    h1, h2, h3, .serif { font-family: 'Playfair Display', serif; }
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      color: var(--charcoal);
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      transition: all 0.3s;
+      border-radius: 2px;
+    }
+    .btn-gold:hover { background: linear-gradient(135deg, var(--gold-dark), var(--gold)); box-shadow: 0 4px 20px rgba(201,168,76,0.4); transform: translateY(-1px); }
+    .btn-outline-gold {
+      border: 1.5px solid var(--gold);
+      color: var(--gold);
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      transition: all 0.3s;
+      border-radius: 2px;
+    }
+    .btn-outline-gold:hover { background: var(--gold); color: var(--charcoal); }
+    .card-glam { background: #fff; border-radius: 4px; box-shadow: 0 2px 20px rgba(26,20,16,0.07); transition: all 0.3s; }
+    .card-glam:hover { box-shadow: 0 8px 40px rgba(26,20,16,0.12); transform: translateY(-2px); }
+    .badge-tier-basic { background: #e5e7eb; color: #374151; }
+    .badge-tier-standard { background: #dbeafe; color: #1d4ed8; }
+    .badge-tier-premium { background: linear-gradient(135deg,#fef3c7,#fde68a); color: #92400e; }
+    .sidebar-link { display:flex; align-items:center; gap:10px; padding:10px 16px; border-radius:4px; color: var(--warm-gray); font-weight:500; transition: all 0.2s; }
+    .sidebar-link:hover, .sidebar-link.active { background: linear-gradient(135deg,rgba(201,168,76,0.12),rgba(201,168,76,0.05)); color: var(--gold-dark); }
+    .sidebar-link i { width: 18px; text-align:center; }
+    .nav-link-main { color: var(--warm-gray); font-weight: 500; transition: color 0.2s; padding: 4px 0; position: relative; }
+    .nav-link-main::after { content:''; position:absolute; bottom:-2px; left:0; width:0; height:1.5px; background:var(--gold); transition: width 0.3s; }
+    .nav-link-main:hover { color: var(--charcoal); }
+    .nav-link-main:hover::after { width: 100%; }
+    .status-badge { padding: 3px 10px; border-radius: 50px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .status-pending { background: #fef3c7; color: #d97706; }
+    .status-accepted { background: #dbeafe; color: #1d4ed8; }
+    .status-on_the_way { background: #ede9fe; color: #7c3aed; }
+    .status-in_progress { background: #d1fae5; color: #065f46; }
+    .status-completed { background: #d1fae5; color: #065f46; }
+    .status-cancelled { background: #fee2e2; color: #991b1b; }
+    .status-disputed { background: #fce7f3; color: #9d174d; }
+    .gold-line { display:inline-block; width:40px; height:2px; background:var(--gold); vertical-align:middle; }
+    input, select, textarea {
+      border: 1.5px solid #e5ddd4;
+      border-radius: 3px;
+      padding: 10px 14px;
+      width: 100%;
+      font-family: 'DM Sans', sans-serif;
+      transition: border-color 0.2s;
+      background: #fff;
+    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,0.1); }
+    label { display: block; font-weight: 500; margin-bottom: 6px; color: var(--warm-gray); font-size: 0.875rem; }
+    .flash-success { background: #d1fae5; border-left: 4px solid #10b981; color: #065f46; }
+    .flash-danger { background: #fee2e2; border-left: 4px solid #ef4444; color: #991b1b; }
+    .flash-info { background: #dbeafe; border-left: 4px solid #3b82f6; color: #1e40af; }
+    .flash-warning { background: #fef3c7; border-left: 4px solid #f59e0b; color: #92400e; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    .fade-up { animation: fadeUp 0.6s ease forwards; }
+    .fade-up-2 { animation: fadeUp 0.6s ease 0.1s forwards; opacity: 0; }
+    .fade-up-3 { animation: fadeUp 0.6s ease 0.2s forwards; opacity: 0; }
+    .grain-bg { position:relative; }
+    .grain-bg::before { content:''; position:absolute; inset:0; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E"); pointer-events:none; opacity:0.4; }
+    table { width:100%; border-collapse: collapse; }
+    th { text-align:left; padding: 10px 16px; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--warm-gray); border-bottom: 2px solid #f0e8df; }
+    td { padding: 14px 16px; border-bottom: 1px solid #f5f0ea; font-size:0.9rem; }
+    tr:hover td { background: #faf7f3; }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+  <!-- Page Loader -->
+  <div id="page-loader"><div class="logo-text"><img src="{{ url_for('static', filename='img/bookglam_w.png') }}" alt="BookGlam Logo" class="h-32 md:h-24 w-auto"></div></div>
+  <!-- Progress Bar -->
+  <div id="nprogress-bar"></div>
+  <!-- Sidebar Overlays -->
+  <div id="admin-sidebar-overlay"></div>
+  <div id="dash-sidebar-overlay"></div>
+
+  {% if current_user.is_authenticated and current_user.role in ('client','provider','admin') %}
+    {% include '_dashboard_nav.html' %}
+  {% else %}
+    {% include '_public_nav.html' %}
+  {% endif %}
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="max-w-7xl mx-auto px-6 pt-4 space-y-2">
+      {% for category, message in messages %}
+      <div class="flash-{{ category }} px-5 py-3 rounded text-sm font-medium flex items-center justify-between">
+        <span>{{ message }}</span>
+        <button onclick="this.parentElement.remove()" class="ml-4 opacity-50 hover:opacity-100">✕</button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+
+  {% include '_footer.html' %}
+
+  <script>
+    // Mobile menu toggle
+    document.addEventListener('DOMContentLoaded', () => {
+      const menuBtn = document.getElementById('menuBtn');
+      const mobileMenu = document.getElementById('mobileMenu');
+
+      if (!menuBtn || !mobileMenu) return;
+
+      menuBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+      });
+    });
+  </script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

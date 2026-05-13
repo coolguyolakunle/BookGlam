@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% block title %}Booking #{{ booking.id }} — BookGlam{% endblock %}
+{% block content %}
+<div class="dash-layout flex min-h-screen" style="background:#FAF6F0;">
+  <aside id="dash-sidebar" style="width:230px; background:#fff; border-right:1px solid #f0e8df; flex-shrink:0;" class="flex flex-col py-6 px-3">
+    <div class="px-3 mb-6"><div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:#C9A84C; font-weight:700;">Client Panel</div></div>
+    <a href="{{ url_for('client.dashboard') }}" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="{{ url_for('client.book') }}" class="sidebar-link"><i class="fas fa-plus-circle"></i> Book Service</a>
+    <a href="{{ url_for('client.bookings') }}" class="sidebar-link active"><i class="fas fa-calendar-alt"></i> My Bookings</a>
+    <a href="{{ url_for('client.profile') }}" class="sidebar-link"><i class="fas fa-user-circle"></i> Profile</a>
+    <div class="mt-auto pt-4 border-t border-gray-100">
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link" style="color:#ef4444;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+  <main class="flex-1 p-6 md:p-8 max-w-3xl">
+    <a href="{{ url_for('client.bookings') }}" style="color:#6B5E52; font-size:0.875rem;" class="flex items-center gap-2 mb-6 hover:text-gray-900 transition-colors"><i class="fas fa-arrow-left text-xs"></i> Back to Bookings</a>
+    <div class="flex items-start justify-between mb-6">
+      <div>
+        <h1 style="font-family:'Playfair Display',serif; font-size:1.6rem; font-weight:700;">Booking #{{ booking.id }}</h1>
+        <div style="color:#6B5E52; font-size:0.875rem; margin-top:4px;">{{ booking.created_at.strftime('%B %d, %Y at %I:%M %p') }}</div>
+      </div>
+      <span class="status-badge status-{{ booking.status }}" style="font-size:0.85rem; padding:5px 14px;">{{ booking.status.replace('_',' ') }}</span>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-5 mb-6">
+      <div class="card-glam p-5">
+        <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:#C9A84C; font-weight:700; margin-bottom:12px;">Service Details</div>
+        <div class="space-y-2 text-sm">
+          <div class="flex justify-between"><span style="color:#6B5E52;">Service</span><span style="font-weight:600;">{{ booking.service.name }}</span></div>
+          <div class="flex justify-between"><span style="color:#6B5E52;">Category</span><span>{{ booking.service.category.name }}</span></div>
+          <div class="flex justify-between"><span style="color:#6B5E52;">Tier</span><span class="badge-tier-{{ booking.service_tier }} px-2 py-0.5 rounded text-xs font-semibold">{{ booking.service_tier|capitalize }}</span></div>
+          <div class="flex justify-between"><span style="color:#6B5E52;">Type</span><span>{{ booking.booking_type|capitalize }}</span></div>
+          <div class="flex justify-between"><span style="color:#6B5E52;">Price</span><span style="font-weight:700; color:#C9A84C;">{% if booking.price %}₦{{ "{:,.0f}".format(booking.price) }}{% else %}TBD{% endif %}</span></div>
+          <div class="flex justify-between"><span style="color:#6B5E52;">Payment</span><span>{{ booking.payment_method|capitalize }}</span></div>
+        </div>
+      </div>
+      <div class="card-glam p-5">
+        <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:#C9A84C; font-weight:700; margin-bottom:12px;">Provider</div>
+        {% if booking.provider %}
+        <div class="flex items-center gap-3 mb-3">
+          {% if booking.provider.user.avatar %}
+          <img src="{{ booking.provider.user.avatar }}" alt="{{ booking.provider.user.full_name }}" style="width:44px; height:44px; border-radius:50%; object-fit:cover; flex-shrink:0;" />
+          {% else %}
+          <div style="width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,#C9A84C,#E8C96B); display:flex; align-items:center; justify-content:center; font-weight:700; color:#1A1410; flex-shrink:0;">{{ booking.provider.user.full_name[0] }}</div>
+          {% endif %}
+          <div><div style="font-weight:600;">{{ booking.provider.user.full_name }}</div><div style="color:#6B5E52; font-size:0.8rem;"><i class="fas fa-star text-yellow-400 text-xs"></i> {{ "%.1f"|format(booking.provider.rating) }}</div></div>
+        </div>
+        <div style="color:#6B5E52; font-size:0.85rem;"><i class="fas fa-phone mr-2" style="color:#C9A84C;"></i>{{ booking.provider.user.phone or 'Not provided' }}</div>
+        <a href="{{ url_for('client.provider_profile', provider_id=booking.provider.id) }}" style="color:#C9A84C; font-size:0.85rem; font-weight:600; margin-top:12px;" class="inline-flex items-center gap-2">
+          <i class="fas fa-id-badge"></i> View Profile
+        </a>
+        {% else %}
+        <div style="color:#6B5E52; font-size:0.875rem; text-align:center; padding:20px 0;"><i class="fas fa-search" style="display:block; font-size:1.5rem; margin-bottom:8px; color:#d4c4b0;"></i>Awaiting provider assignment</div>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if booking.address %}
+    <div class="card-glam p-5 mb-6">
+      <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:#C9A84C; font-weight:700; margin-bottom:10px;">Address</div>
+      <div><i class="fas fa-map-marker-alt mr-2" style="color:#C9A84C;"></i>{{ booking.address }}</div>
+    </div>
+    {% endif %}
+
+    {% if booking.provider %}
+    <div class="flex flex-wrap gap-3 mb-6">
+      <a href="{{ url_for('client.chat', booking_id=booking.id) }}" class="btn-gold px-5 py-2.5 text-sm inline-flex items-center gap-2">
+        <i class="fas fa-comment"></i> Chat
+      </a>
+      {% if booking.status in ['accepted','on_the_way','in_progress'] %}
+      <a href="{{ url_for('client.track', booking_id=booking.id) }}" class="btn-outline-gold px-5 py-2.5 text-sm inline-flex items-center gap-2">
+        <i class="fas fa-map-marker-alt"></i> Live Track
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if booking.notes %}
+    <div class="card-glam p-5 mb-6">
+      <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:#C9A84C; font-weight:700; margin-bottom:10px;">Notes</div>
+      <p style="color:#6B5E52; font-size:0.9rem;">{{ booking.notes }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Review Section -->
+    {% if booking.status == 'completed' and not booking.review %}
+    <div class="card-glam p-6" style="border:2px solid rgba(201,168,76,0.3);">
+      <h3 style="font-family:'Playfair Display',serif; font-weight:600; margin-bottom:14px;"><i class="fas fa-star mr-2" style="color:#C9A84C;"></i>Leave a Review</h3>
+      <form method="POST" action="{{ url_for('client.leave_review', booking_id=booking.id) }}" class="space-y-4">
+        <div>
+          <label>Rating</label>
+          <div class="flex gap-3 mt-2">
+            {% for i in range(1,6) %}
+            <label class="cursor-pointer">
+              <input type="radio" name="rating" value="{{ i }}" class="hidden" required />
+              <i class="far fa-star text-2xl hover:text-yellow-400 transition-colors star-radio" data-val="{{ i }}"></i>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+        <div>
+          <label>Comment</label>
+          <textarea name="comment" rows="3" placeholder="How was your experience?"></textarea>
+        </div>
+        <button type="submit" class="btn-gold px-6 py-2.5 text-sm">Submit Review</button>
+      </form>
+    </div>
+    {% elif booking.review %}
+    <div class="card-glam p-5" style="background:#faf7f3; border:1px solid #f0e8df;">
+      <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:#C9A84C; font-weight:700; margin-bottom:10px;">Your Review</div>
+      <div style="font-size:1.1rem; margin-bottom:6px;">{{ '★' * booking.review.rating }}{{ '☆' * (5 - booking.review.rating) }}</div>
+      {% if booking.review.comment %}<p style="color:#6B5E52; font-size:0.9rem;">{{ booking.review.comment }}</p>{% endif %}
+    </div>
+    {% endif %}
+  </main>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.querySelectorAll('.star-radio').forEach(star => {
+  star.addEventListener('click', function() {
+    const val = parseInt(this.dataset.val);
+    document.querySelectorAll('.star-radio').forEach((s, i) => {
+      s.className = s.className.replace('fas','far').replace('far','far');
+      if (i < val) { s.classList.add('fas'); s.classList.remove('far'); s.style.color = '#f59e0b'; }
+      else { s.classList.add('far'); s.classList.remove('fas'); s.style.color = ''; }
+    });
+  });
+});
+</script>
+{% endblock %}

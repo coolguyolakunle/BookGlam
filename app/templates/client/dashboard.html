@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block title %}My Dashboard — BookGlam{% endblock %}
+{% block content %}
+<div class="dash-layout flex min-h-screen" style="background:#FAF6F0;">
+  <aside id="dash-sidebar" style="width:230px; background:#fff; border-right:1px solid #f0e8df; flex-shrink:0;" class="flex flex-col py-6 px-3">
+    <div class="px-3 mb-6">
+      <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:#C9A84C; font-weight:700;">Client Panel</div>
+    </div>
+    <a href="{{ url_for('client.dashboard') }}" class="sidebar-link {% if request.endpoint == 'client.dashboard' %}active{% endif %}"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="{{ url_for('client.book') }}" class="sidebar-link {% if request.endpoint == 'client.book' %}active{% endif %}"><i class="fas fa-plus-circle"></i> Book Service</a>
+    <a href="{{ url_for('client.bookings') }}" class="sidebar-link {% if request.endpoint == 'client.bookings' %}active{% endif %}"><i class="fas fa-calendar-alt"></i> My Bookings</a>
+    <a href="{{ url_for('client.profile') }}" class="sidebar-link {% if request.endpoint == 'client.profile' %}active{% endif %}"><i class="fas fa-user-circle"></i> Profile</a>
+    <div class="mt-auto pt-4 border-t border-gray-100">
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link" style="color:#ef4444;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+
+  <main class="flex-1 p-6 md:p-8">
+    <div class="mb-8 flex items-center gap-4">
+      {% if current_user.avatar %}
+      <img src="{{ current_user.avatar }}" alt="{{ current_user.full_name }}" style="width:58px; height:58px; border-radius:50%; object-fit:cover; flex-shrink:0;" />
+      {% else %}
+      <div style="width:58px; height:58px; border-radius:50%; background:linear-gradient(135deg,#C9A84C,#E8C96B); display:flex; align-items:center; justify-content:center; font-family:'Playfair Display',serif; font-weight:700; font-size:1.4rem; color:#1A1410; flex-shrink:0;">{{ current_user.full_name[0] }}</div>
+      {% endif %}
+      <div>
+      <h1 style="font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:700;">Welcome, {{ current_user.full_name.split()[0] }} <span style="font-style:italic; color:#C9A84C;">✦</span></h1>
+      <p style="color:#6B5E52; margin-top:4px;">What beauty service would you like today?</p>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+      <a href="{{ url_for('client.book') }}?type=instant" class="card-glam p-5 text-center" style="background:linear-gradient(135deg,#1A1410,#2E1F14);">
+        <i class="fas fa-bolt" style="color:#C9A84C; font-size:1.4rem; margin-bottom:8px; display:block;"></i>
+        <div style="color:#fff; font-weight:600; font-size:0.9rem;">Book Now</div>
+        <div style="color:#8a7a6a; font-size:0.75rem;">Instant request</div>
+      </a>
+      <a href="{{ url_for('client.book') }}" class="card-glam p-5 text-center">
+        <i class="fas fa-calendar-plus" style="color:#C9A84C; font-size:1.4rem; margin-bottom:8px; display:block;"></i>
+        <div style="font-weight:600; font-size:0.9rem;">Schedule</div>
+        <div style="color:#6B5E52; font-size:0.75rem;">Pick a date & time</div>
+      </a>
+      <a href="{{ url_for('client.bookings') }}" class="card-glam p-5 text-center">
+        <i class="fas fa-history" style="color:#C9A84C; font-size:1.4rem; margin-bottom:8px; display:block;"></i>
+        <div style="font-weight:600; font-size:0.9rem;">My Bookings</div>
+        <div style="color:#6B5E52; font-size:0.75rem;">Track & review</div>
+      </a>
+      <a href="{{ url_for('client.profile') }}" class="card-glam p-5 text-center">
+        <i class="fas fa-user-circle" style="color:#C9A84C; font-size:1.4rem; margin-bottom:8px; display:block;"></i>
+        <div style="font-weight:600; font-size:0.9rem;">Profile</div>
+        <div style="color:#6B5E52; font-size:0.75rem;">Manage account</div>
+      </a>
+    </div>
+
+    <!-- Recent Bookings -->
+    <div class="card-glam p-6">
+      <div class="flex items-center justify-between mb-5">
+        <h2 style="font-family:'Playfair Display',serif; font-size:1.2rem; font-weight:600;">Recent Bookings</h2>
+        <a href="{{ url_for('client.bookings') }}" style="color:#C9A84C; font-size:0.85rem; font-weight:600;">View All</a>
+      </div>
+      {% if bookings %}
+      <div class="space-y-3">
+        {% for b in bookings %}
+        <div class="flex items-center justify-between p-4 rounded" style="background:#FAF6F0; border:1px solid #f0e8df;">
+          <div>
+            <div style="font-weight:600; font-size:0.9rem;">{{ b.service.name }}</div>
+            <div style="color:#6B5E52; font-size:0.8rem;">{{ b.created_at.strftime('%b %d, %Y') }} · {{ b.booking_type|capitalize }}</div>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="status-badge status-{{ b.status }}">{{ b.status.replace('_',' ') }}</span>
+            <a href="{{ url_for('client.booking_detail', booking_id=b.id) }}" style="color:#C9A84C; font-size:0.8rem;">View</a>
+          </div>  
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="text-center py-12" style="color:#6B5E52;">
+        <i class="fas fa-calendar-alt" style="font-size:2rem; color:#d4c4b0; display:block; margin-bottom:10px;"></i>
+        No bookings yet. <a href="{{ url_for('client.book') }}" style="color:#C9A84C; font-weight:600;">Book your first service!</a>
+      </div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+{% endblock %}

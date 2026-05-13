@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+{% block title %}BookGlam — On-Demand Beauty Services{% endblock %}
+
+{% block content %}
+<!-- HERO -->
+<section class="grain-bg" style="background: linear-gradient(160deg, #1A1410 0%, #2E1F14 55%, #3D2A1A 100%); min-height: 92vh; display:flex; align-items:center; position:relative; overflow:hidden;">
+  <!-- Decorative circles -->
+  <div style="position:absolute; top:-100px; right:-100px; width:600px; height:600px; border-radius:50%; background:radial-gradient(circle, rgba(201,168,76,0.12) 0%, transparent 70%); pointer-events:none;"></div>
+  <div style="position:absolute; bottom:-150px; left:-80px; width:400px; height:400px; border-radius:50%; background:radial-gradient(circle, rgba(201,168,76,0.07) 0%, transparent 70%); pointer-events:none;"></div>
+
+  <div class="max-w-7xl mx-auto px-6 py-20 grid md:grid-cols-2 gap-16 items-center w-full relative z-10">
+    <div>
+      <div class="fade-up" style="display:inline-block; background:rgba(201,168,76,0.15); border:1px solid rgba(201,168,76,0.3); color:#C9A84C; padding:6px 16px; border-radius:50px; font-size:0.8rem; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:24px;">
+        Now Available in Lagos
+      </div>
+      <h1 class="fade-up-2" style="font-family:'Playfair Display',serif; font-size:clamp(2.4rem,5vw,3.8rem); font-weight:900; color:#fff; line-height:1.1; margin-bottom:24px;">
+        Beauty, At Your<br/><span style="color:#C9A84C; font-style:italic;">Doorstep.</span>
+      </h1>
+      <p class="fade-up-3" style="color:#c4b49e; font-size:1.05rem; line-height:1.7; max-width:460px; margin-bottom:36px;">
+        Book verified hair stylists, barbers, makeup artists, and nail technicians — instantly or scheduled. Home visits or shop appointments. For every budget.
+      </p>
+      <div class="fade-up-3 flex flex-wrap gap-3">
+        <a href="{{ url_for('auth.signup') }}" class="btn-gold px-7 py-3.5 text-base inline-block">Book a Service <i class="fas fa-arrow-right ml-2 text-sm"></i></a>
+        <a href="{{ url_for('main.how_it_works') }}" style="border:1.5px solid rgba(201,168,76,0.4); color:#C9A84C; border-radius:2px; font-weight:600;" class="px-7 py-3.5 text-base inline-block hover:bg-gold hover:text-charcoal transition-all">How It Works</a>
+      </div>
+      <div class="mt-10 flex items-center gap-6" style="color:#8a7a6a; font-size:0.875rem;">
+        <div><span style="color:#fff; font-weight:700; font-size:1.3rem;" data-countup data-target="500" data-suffix="+">0+</span><br/>Providers</div>
+        <div style="width:1px; height:36px; background:rgba(255,255,255,0.1);"></div>
+        <div><span style="color:#fff; font-weight:700; font-size:1.3rem;">4.8★</span><br/>Avg Rating</div>
+        <div style="width:1px; height:36px; background:rgba(255,255,255,0.1);"></div>
+        <div><span style="color:#fff; font-weight:700; font-size:1.3rem;" data-countup data-target="10000" data-suffix="+">0+</span><br/>Bookings</div>
+      </div>
+    </div>
+    <div class="hidden md:grid grid-cols-2 gap-3">
+      <div style="border-radius:6px; overflow:hidden; height:220px; background:linear-gradient(135deg,#3d2a1a,#5a3d28);" class="flex items-center justify-center">
+        <i class="fas fa-cut" style="font-size:3rem; color:rgba(201,168,76,0.3);"></i>
+      </div>
+      <div style="border-radius:6px; overflow:hidden; height:220px; background:linear-gradient(135deg,#2a1d14,#3d2a1a); margin-top:30px;" class="flex items-center justify-center">
+        <i class="fas fa-magic" style="font-size:3rem; color:rgba(201,168,76,0.3);"></i>
+      </div>
+      <div style="border-radius:6px; overflow:hidden; height:220px; background:linear-gradient(135deg,#2a1d14,#3d2a1a); margin-top:-30px;" class="flex items-center justify-center">
+        <i class="fas fa-hand-sparkles" style="font-size:3rem; color:rgba(201,168,76,0.3);"></i>
+      </div>
+      <div style="border-radius:6px; overflow:hidden; height:220px; background:linear-gradient(135deg,#3d2a1a,#5a3d28);" class="flex items-center justify-center">
+        <i class="fas fa-user-tie" style="font-size:3rem; color:rgba(201,168,76,0.3);"></i>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="py-20 max-w-7xl mx-auto px-6">
+  <div class="text-center mb-14">
+    <p style="color:#C9A84C; font-size:0.8rem; letter-spacing:0.12em; text-transform:uppercase; font-weight:600;">Our Services</p>
+    <h2 style="font-family:'Playfair Display',serif; font-size:2.4rem; font-weight:700; margin-top:8px; margin-bottom:12px;">Everything Beauty, One App</h2>
+    <p style="color:#6B5E52; max-width:500px; margin:0 auto;">Browse top services across all beauty categories — all with real-time provider matching.</p>
+  </div>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+    {% for cat in categories %}
+    <div class="card-glam p-6 text-center cursor-pointer">
+      <div style="width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg,rgba(201,168,76,0.15),rgba(201,168,76,0.05)); margin:0 auto 14px; display:flex; align-items:center; justify-content:center;">
+        {% if cat.name == 'Hair' %}<i class="fas fa-cut" style="color:#C9A84C; font-size:1.4rem;"></i>
+        {% elif cat.name == 'Barbing' %}<i class="fas fa-user-alt" style="color:#C9A84C; font-size:1.4rem;"></i>
+        {% elif cat.name == 'Makeup' %}<i class="fas fa-magic" style="color:#C9A84C; font-size:1.4rem;"></i>
+        {% else %}<i class="fas fa-hand-sparkles" style="color:#C9A84C; font-size:1.4rem;"></i>{% endif %}
+      </div>
+      <div style="font-family:'Playfair Display',serif; font-weight:600; font-size:1.1rem; margin-bottom:6px;">{{ cat.name }}</div>
+      <div style="color:#6B5E52; font-size:0.85rem;">{{ cat.description }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section style="background: #F5E6DC;" class="py-20">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-14">
+      <p style="color:#C9A84C; font-size:0.8rem; letter-spacing:0.12em; text-transform:uppercase; font-weight:600;">Simple Process</p>
+      <h2 style="font-family:'Playfair Display',serif; font-size:2.4rem; font-weight:700; margin-top:8px;">Book in Minutes</h2>
+    </div>
+    <div class="grid md:grid-cols-4 gap-8">
+      {% for step in [
+        ('1','Choose Service','Browse hair, makeup, nails, barbing and more from verified professionals.','fas fa-search'),
+        ('2','Pick a Provider','Filter by location, tier, and ratings. See real-time availability.','fas fa-user-check'),
+        ('3','Book & Pay','Instant or scheduled. Pay by cash, transfer, or card.','fas fa-calendar-check'),
+        ('4','Get Served','Your provider arrives at your door — tracked live.','fas fa-map-marker-alt')
+      ] %}
+      <div class="text-center">
+        <div style="width:70px; height:70px; border-radius:50%; background:#fff; margin:0 auto 16px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 20px rgba(0,0,0,0.08); position:relative;">
+          <i class="{{ step[3] }}" style="color:#C9A84C; font-size:1.4rem;"></i>
+          <div style="position:absolute; top:-8px; right:-8px; width:24px; height:24px; background:#C9A84C; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.7rem; font-weight:700; color:#1A1410;">{{ step[0] }}</div>
+        </div>
+        <h3 style="font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:600; margin-bottom:8px;">{{ step[1] }}</h3>
+        <p style="color:#6B5E52; font-size:0.875rem; line-height:1.6;">{{ step[2] }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- SERVICE TIERS -->
+<section class="py-20 max-w-7xl mx-auto px-6">
+  <div class="text-center mb-14">
+    <p style="color:#C9A84C; font-size:0.8rem; letter-spacing:0.12em; text-transform:uppercase; font-weight:600;">Pricing Tiers</p>
+    <h2 style="font-family:'Playfair Display',serif; font-size:2.4rem; font-weight:700; margin-top:8px; margin-bottom:12px;">Beauty for Every Budget</h2>
+    <p style="color:#6B5E52; max-width:480px; margin:0 auto;">From affordable everyday styling to luxury experiences — our tiered system ensures everyone gets quality service.</p>
+  </div>
+  <div class="grid md:grid-cols-3 gap-8">
+    {% for tier in [
+      ('Basic','For everyday needs. Nearby providers, great value.','₦1,000+','fas fa-leaf','#e5e7eb','#374151'),
+      ('Standard','Our most popular tier. Balanced quality & price.','₦3,000+','fas fa-star','#dbeafe','#1d4ed8'),
+      ('Premium','Top-rated professionals. Luxury experience at home.','₦8,000+','fas fa-crown','#fef3c7','#92400e'),
+    ] %}
+    <div class="card-glam p-8 {% if loop.index == 2 %}ring-2{% endif %}" style="{% if loop.index == 2 %}ring-color:#C9A84C; outline:2px solid #C9A84C;{% endif %}">
+      {% if loop.index == 2 %}<div class="btn-gold text-xs px-3 py-1 text-center mb-4 inline-block">Most Popular</div>{% endif %}
+      <div style="width:48px; height:48px; border-radius:50%; background:{{ tier[5] }}20; display:flex; align-items:center; justify-content:center; margin-bottom:16px;">
+        <i class="{{ tier[3] }}" style="color:{{ tier[5] }};"></i>
+      </div>
+      <h3 style="font-family:'Playfair Display',serif; font-size:1.4rem; font-weight:700; margin-bottom:8px;">{{ tier[0] }}</h3>
+      <p style="color:#6B5E52; font-size:0.875rem; margin-bottom:16px;">{{ tier[1] }}</p>
+      <div style="font-size:1.6rem; font-weight:700; color:#1A1410; margin-bottom:20px;">{{ tier[2] }} <span style="font-size:0.85rem; font-weight:400; color:#6B5E52;">per service</span></div>
+      <a href="{{ url_for('auth.signup') }}" class="btn-gold px-5 py-2.5 text-sm block text-center">Book {{ tier[0] }}</a>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- PROVIDERS PREVIEW -->
+{% if providers %}
+<section style="background:#FAF6F0;" class="py-20">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="flex items-end justify-between mb-12">
+      <div>
+        <p style="color:#C9A84C; font-size:0.8rem; letter-spacing:0.12em; text-transform:uppercase; font-weight:600;">Top Professionals</p>
+        <h2 style="font-family:'Playfair Display',serif; font-size:2.2rem; font-weight:700; margin-top:8px;">Available Near You</h2>
+      </div>
+      <a href="{{ url_for('auth.signup') }}" style="color:#C9A84C; font-weight:600; font-size:0.875rem;">View All <i class="fas fa-arrow-right ml-1"></i></a>
+    </div>
+    <div class="grid md:grid-cols-3 gap-6">
+      {% for p in providers %}
+      <div class="card-glam p-6 flex gap-4">
+        <div style="width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,#C9A84C,#E8C96B); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family:'Playfair Display',serif; font-weight:700; font-size:1.2rem; color:#1A1410;">
+          {{ p.user.full_name[0] }}
+        </div>
+        <div>
+          <div style="font-weight:600; margin-bottom:2px;">{{ p.user.full_name }}</div>
+          <div style="color:#6B5E52; font-size:0.8rem; margin-bottom:6px;">{{ p.specialties or 'Beauty Professional' }}</div>
+          <div style="font-size:0.8rem; display:flex; align-items:center; gap:8px;">
+            <span style="color:#C9A84C;"><i class="fas fa-star text-xs"></i> {{ "%.1f"|format(p.rating) }}</span>
+            <span style="color:#9ca3af;">· {{ p.total_reviews }} reviews</span>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- CTA BANNER -->
+<section style="background:linear-gradient(135deg,#1A1410,#2E1F14);" class="py-20 text-center">
+  <div class="max-w-2xl mx-auto px-6">
+    <h2 style="font-family:'Playfair Display',serif; font-size:2.4rem; font-weight:700; color:#fff; margin-bottom:16px;">Ready to Look Your Best?</h2>
+    <p style="color:#c4b49e; margin-bottom:32px; font-size:1.05rem;">Join thousands of Nigerians enjoying beauty services on demand.</p>
+    <div class="flex flex-wrap justify-center gap-4">
+      <a href="{{ url_for('auth.signup') }}" class="btn-gold px-8 py-3.5 text-base">Book Now — It's Free</a>
+      <a href="{{ url_for('auth.signup') }}?role=provider" style="border:1.5px solid rgba(201,168,76,0.4); color:#C9A84C; border-radius:2px; font-weight:600;" class="px-8 py-3.5 text-base inline-block">Join as Provider</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

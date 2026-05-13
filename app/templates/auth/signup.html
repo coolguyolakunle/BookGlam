@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}Sign Up — BookGlam{% endblock %}
+{% block content %}
+<div class="min-h-screen flex items-center justify-center py-16 px-4" style="background:linear-gradient(135deg,#FAF6F0 0%,#F5E6DC 100%);">
+  <div class="w-full max-w-md">
+    <div class="text-center mb-10">
+      <a href="{{ url_for('main.index') }}" style="font-family:'Playfair Display',serif; font-weight:700; font-size:2rem; color:#1A1410;">Book<span style="color:#C9A84C;">Glam</span></a>
+      <p style="color:#6B5E52; margin-top:8px;">Create your account to get started.</p>
+    </div>
+    <div class="card-glam p-8">
+      <!-- Role Toggle -->
+      <div class="flex rounded overflow-hidden mb-6" style="border:1.5px solid #e5ddd4;">
+        <button type="button" id="roleClient" onclick="setRole('client')"
+          class="flex-1 py-2.5 text-sm font-600 transition-all"
+          style="font-weight:600; background:linear-gradient(135deg,#C9A84C,#E8C96B); color:#1A1410;">
+          <i class="fas fa-user mr-2"></i>I'm a Client
+        </button>
+        <button type="button" id="roleProvider" onclick="setRole('provider')"
+          class="flex-1 py-2.5 text-sm transition-all"
+          style="font-weight:600; background:#fff; color:#6B5E52;">
+          <i class="fas fa-scissors mr-2"></i>I'm a Provider
+        </button>
+      </div>
+      <form method="POST" class="space-y-4">
+        <input type="hidden" name="role" id="roleInput" value="client" />
+        <div>
+          <label>Full Name</label>
+          <input type="text" name="full_name" placeholder="Amaka Johnson" required />
+        </div>
+        <div>
+          <label>Email Address</label>
+          <input type="email" name="email" placeholder="you@example.com" required />
+        </div>
+        <div>
+          <label>Phone Number</label>
+          <input type="tel" name="phone" placeholder="+234 800 000 0000" />
+        </div>
+        <div>
+          <label>Password</label>
+          <input type="password" name="password" placeholder="At least 8 characters" required minlength="8" />
+        </div>
+        <button type="submit" class="btn-gold w-full py-3 text-base mt-2">Create Account</button>
+        <p style="font-size:0.78rem; color:#9ca3af; text-align:center;">By signing up, you agree to our Terms of Service and Privacy Policy.</p>
+      </form>
+      <p class="text-center mt-5" style="color:#6B5E52; font-size:0.875rem;">
+        Already have an account? <a href="{{ url_for('auth.login') }}" style="color:#C9A84C; font-weight:600;">Sign in</a>
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function setRole(role) {
+  document.getElementById('roleInput').value = role;
+  const clientBtn = document.getElementById('roleClient');
+  const providerBtn = document.getElementById('roleProvider');
+  const activeStyle = 'background:linear-gradient(135deg,#C9A84C,#E8C96B); color:#1A1410;';
+  const inactiveStyle = 'background:#fff; color:#6B5E52;';
+  if (role === 'client') {
+    clientBtn.style.cssText = activeStyle;
+    providerBtn.style.cssText = inactiveStyle;
+  } else {
+    providerBtn.style.cssText = activeStyle;
+    clientBtn.style.cssText = inactiveStyle;
+  }
+}
+</script>
+{% endblock %}

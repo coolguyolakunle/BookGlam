@@ -1,0 +1,60 @@
+<nav style="background:#fff; border-bottom:1px solid #f0e8df;"
+  class="sticky top-0 z-50">
+
+  <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-14">
+
+    <!-- LEFT -->
+    <div class="flex items-center gap-3">
+
+      <!-- MOBILE HAMBURGER -->
+      <button id="dash-hamburger"
+              class="md:hidden text-[#1A1410] text-xl">
+        <i class="fas fa-bars"></i>
+      </button>
+
+      <!-- LOGO -->
+      <a href="{{ url_for('main.index') }}" class="flex items-center gap-2">
+        <img src="{{ url_for('static', filename='img/bookglam.png') }}"
+            alt="bookglam logo"
+            class="h-20 md:h-18 w-auto object-contain transition-transform duration-300 hover:scale-105"/>
+      </a>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="flex items-center gap-4">
+
+      {% if current_user.role == 'provider' %}
+      <span id="availabilityBadge"
+            style="font-size:0.8rem; font-weight:600;"
+            class="px-3 py-1 rounded-full
+            {% if current_user.provider_profile and current_user.provider_profile.is_online %}
+            bg-green-100 text-green-700
+            {% else %}
+            bg-gray-100 text-gray-500
+            {% endif %}">
+        <i class="fas fa-circle text-xs mr-1"></i>
+
+        <span id="availabilityText">
+          {% if current_user.provider_profile and current_user.provider_profile.is_online %}
+            Online
+          {% else %}
+            Offline
+          {% endif %}
+        </span>
+      </span>
+      {% endif %}
+
+      <span class="text-sm hidden md:block"
+            style="color:#6B5E52;">
+        Hi, <strong>{{ current_user.full_name.split()[0] }}</strong>
+      </span>
+
+      <a href="{{ url_for('auth.logout') }}"
+         class="text-sm btn-outline-gold px-4 py-1.5">
+        Logout
+      </a>
+
+    </div>
+
+  </div>
+</nav>

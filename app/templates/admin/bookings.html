@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block title %}Manage Bookings — BookGlam Admin{% endblock %}
+{% block content %}
+<div class="flex min-h-screen" style="background:#FAF6F0;">
+  <aside style="width:230px; background:#1A1410; flex-shrink:0;" class="hidden md:flex flex-col py-6 px-3">
+    <div class="px-3 mb-8">
+      <div style="font-family:'Playfair Display',serif; font-weight:700; font-size:1.2rem; color:#fff;">Book<span style="color:#C9A84C;">Glam</span></div>
+      <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:#C9A84C; font-weight:700; margin-top:4px;">Admin Panel</div>
+    </div>
+    <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link" style="color:#c4b49e;"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a href="{{ url_for('admin.providers') }}" class="sidebar-link" style="color:#c4b49e;"><i class="fas fa-user-check"></i> Providers</a>
+    <a href="{{ url_for('admin.users') }}" class="sidebar-link" style="color:#c4b49e;"><i class="fas fa-users"></i> Users</a>
+    <a href="{{ url_for('admin.bookings') }}" class="sidebar-link active" style="color:#c4b49e;"><i class="fas fa-calendar-alt"></i> Bookings</a>
+    <a href="{{ url_for('admin.withdrawals') }}" class="sidebar-link" style="color:#c4b49e;"><i class="fas fa-money-bill-wave"></i> Withdrawals</a>
+    <a href="{{ url_for('admin.services') }}" class="sidebar-link" style="color:#c4b49e;"><i class="fas fa-cut"></i> Services</a>
+    <div class="mt-auto pt-4" style="border-top:1px solid #2e2520;">
+      <a href="{{ url_for('admin.change_password') }}" class="sidebar-link {% if request.endpoint == 'admin.change_password' %}active{% endif %}" style="color:#c4b49e;"><i class="fas fa-key"></i> Change Password</a>
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link" style="color:#ef6b6b;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+
+  <main class="flex-1 p-6 md:p-8">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 style="font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:700;">Manage Bookings</h1>
+        <p style="color:#6B5E52; margin-top:4px;">{{ bookings|length }} booking(s) shown</p>
+      </div>
+    </div>
+
+    <!-- Status Filters -->
+    <div class="flex flex-wrap gap-2 mb-6">
+      {% for s in ['all','pending','accepted','on_the_way','in_progress','completed','cancelled','disputed'] %}
+      <a href="{{ url_for('admin.bookings', status=s) }}"
+        class="px-3 py-1.5 rounded text-xs font-semibold transition-all"
+        style="{% if status_filter == s %}background:#C9A84C; color:#1A1410;{% else %}background:#fff; color:#6B5E52; border:1px solid #e5ddd4;{% endif %}">
+        {{ s.replace('_',' ').title() }}
+      </a>
+      {% endfor %}
+    </div>
+
+    <div class="card-glam overflow-hidden">
+      {% if bookings %}
+      <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>#</th><th>Client</th><th>Service</th><th>Provider</th><th>Type</th><th>Price</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+        <tbody>
+          {% for b in bookings %}
+          <tr>
+            <td style="color:#9ca3af; font-size:0.8rem;">#{{ b.id }}</td>
+            <td>
+              <div style="font-weight:600; font-size:0.875rem;">{{ b.client.full_name }}</div>
+              <div style="color:#9ca3af; font-size:0.75rem;">{{ b.client.phone or '' }}</div>
+            </td>
+            <td style="font-size:0.875rem;">{{ b.service.name }}</td>
+            <td style="font-size:0.875rem;">{{ b.provider.user.full_name if b.provider else '<span style="color:#9ca3af;">Unassigned</span>' | safe }}</td>
+            <td><span style="font-size:0.8rem;">{% if b.booking_type == 'home' %}<i class="fas fa-home mr-1" style="color:#C9A84C;"></i>{% else %}<i class="fas fa-store mr-1" style="color:#C9A84C;"></i>{% endif %}{{ b.booking_type|capitalize }}</span></td>
+            <td style="font-weight:600; font-size:0.875rem;">{% if b.price %}₦{{ "{:,.0f}".format(b.price) }}{% else %}—{% endif %}</td>
+            <td><span class="status-badge status-{{ b.status }}">{{ b.status.replace('_',' ') }}</span></td>
+            <td style="color:#6B5E52; font-size:0.8rem; white-space:nowrap;">{{ b.created_at.strftime('%b %d, %Y') }}</td>
+            <td>
+              {% if b.status == 'disputed' %}
+              <button onclick="document.getElementById('resolve-modal-{{ b.id }}').classList.remove('hidden')" class="text-xs px-3 py-1.5 rounded font-semibold btn-gold">Resolve</button>
+              {% elif b.status not in ['completed','cancelled'] %}
+              <form method="POST" action="{{ url_for('admin.resolve_booking', booking_id=b.id) }}" class="inline">
+                <input type="hidden" name="resolution" value="cancelled" />
+                <button type="submit" class="text-xs px-3 py-1.5 rounded font-semibold border border-red-200 text-red-600 hover:bg-red-50" onclick="return confirm('Cancel this booking?')">Cancel</button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+          <!-- Resolve Modal per disputed booking -->
+          {% if b.status == 'disputed' %}
+          <tr id="resolve-modal-{{ b.id }}" class="hidden">
+            <td colspan="9" style="background:#fef9ee; padding:16px 20px;">
+              <form method="POST" action="{{ url_for('admin.resolve_booking', booking_id=b.id) }}" class="flex items-center gap-4">
+                <span style="font-weight:600; font-size:0.875rem;">Resolve Booking #{{ b.id }}:</span>
+                <select name="resolution" style="width:auto; padding:6px 12px;">
+                  <option value="completed">Mark Completed</option>
+                  <option value="cancelled">Cancel & Refund</option>
+                </select>
+                <button type="submit" class="btn-gold px-4 py-2 text-sm">Apply</button>
+                <button type="button" onclick="document.getElementById('resolve-modal-{{ b.id }}').classList.add('hidden')" class="btn-outline-gold px-4 py-2 text-sm">Close</button>
+              </form>
+            </td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+      </div>
+      {% else %}
+      <div class="text-center py-14" style="color:#6B5E52;"><i class="fas fa-calendar-alt" style="font-size:2rem; color:#d4c4b0; display:block; margin-bottom:10px;"></i>No bookings found for this filter.</div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+{% endblock %}

@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+{% block title %}Live Tracking — Booking #{{ booking.id }} — BookGlam{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+<style>
+  #map { height: calc(100vh - 200px); min-height: 400px; border-radius: 6px; z-index: 1; }
+  .leaflet-popup-content-wrapper { border-radius: 6px; font-family: 'DM Sans', sans-serif; }
+  .pulse-ring { position:absolute; border-radius:50%; animation: pulse 2s ease-out infinite; }
+  .track-avatar { width:36px; height:36px; border-radius:50%; object-fit:cover; flex-shrink:0; margin:0 auto 6px; }
+  .track-avatar-fallback { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#C9A84C,#E8C96B); display:flex; align-items:center; justify-content:center; font-weight:700; color:#1A1410; flex-shrink:0; margin:0 auto 6px; }
+  @keyframes pulse { 0%{transform:scale(1);opacity:0.8} 100%{transform:scale(2.5);opacity:0} }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dash-layout flex min-h-screen" style="background:#FAF6F0;">
+
+  {% if role == 'client' %}
+  <aside id="dash-sidebar" style="width:230px;background:#fff;border-right:1px solid #f0e8df;flex-shrink:0;" class="flex flex-col py-6 px-3">
+    <div class="px-3 mb-6"><div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:#C9A84C; font-weight:700;">Client Panel</div></div>
+    <a href="{{ url_for('client.dashboard') }}" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="{{ url_for('client.book') }}" class="sidebar-link"><i class="fas fa-plus-circle"></i> Book Service</a>
+    <a href="{{ url_for('client.bookings') }}" class="sidebar-link active"><i class="fas fa-calendar-alt"></i> My Bookings</a>
+    <a href="{{ url_for('client.profile') }}" class="sidebar-link"><i class="fas fa-user-circle"></i> Profile</a>
+    <div class="mt-auto pt-4 border-t border-gray-100">
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link" style="color:#ef4444;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+  {% else %}
+  <aside id="dash-sidebar" style="width:230px;background:#fff;border-right:1px solid #f0e8df;flex-shrink:0;" class="flex flex-col py-6 px-3">
+    <div class="px-3 mb-6"><div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:#C9A84C; font-weight:700;">Provider Panel</div></div>
+    <a href="{{ url_for('provider.dashboard') }}" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="{{ url_for('provider.available_jobs') }}" class="sidebar-link"><i class="fas fa-search"></i> Available Jobs</a>
+    <a href="{{ url_for('provider.jobs') }}" class="sidebar-link active"><i class="fas fa-briefcase"></i> My Jobs</a>
+    <a href="{{ url_for('provider.earnings') }}" class="sidebar-link"><i class="fas fa-wallet"></i> Earnings</a>
+    <a href="{{ url_for('provider.profile_page') }}" class="sidebar-link"><i class="fas fa-user-circle"></i> Profile</a>
+    <div class="mt-auto pt-4 border-t border-gray-100">
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link" style="color:#ef4444;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+  {% endif %}
+
+  <main class="flex-1 p-5 md:p-6 flex flex-col gap-4">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="{% if role == 'client' %}{{ url_for('client.booking_detail', booking_id=booking.id) }}{% else %}{{ url_for('provider.jobs') }}{% endif %}"
+           style="color:#6B5E52;" class="hover:text-gray-900 transition-colors">
+          <i class="fas fa-arrow-left"></i>
+        </a>
+        <div>
+          <h1 style="font-family:'Playfair Display',serif; font-size:1.4rem; font-weight:700;">Live Tracking</h1>
+          <div style="font-size:0.8rem; color:#6B5E52;">Booking #{{ booking.id }} · {{ booking.service.name }}</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span id="statusDot" style="width:10px; height:10px; border-radius:50%; background:#d1d5db; display:inline-block;"></span>
+        <span id="statusText" style="font-size:0.8rem; color:#6B5E52; font-weight:600;">Waiting for GPS…</span>
+        <a href="{% if role == 'client' %}{{ url_for('client.chat', booking_id=booking.id) }}{% else %}{{ url_for('provider.chat', booking_id=booking.id) }}{% endif %}"
+           class="btn-outline-gold px-4 py-1.5 text-xs flex items-center gap-1 ml-3">
+          <i class="fas fa-comment"></i> Chat
+        </a>
+      </div>
+    </div>
+
+    <!-- Info Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div class="card-glam p-4 text-center">
+        <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.06em; color:#6B5E52; font-weight:600; margin-bottom:4px;">Service</div>
+        <div style="font-weight:700; font-size:0.875rem;">{{ booking.service.name }}</div>
+      </div>
+      <div class="card-glam p-4 text-center">
+        <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.06em; color:#6B5E52; font-weight:600; margin-bottom:4px;">Status</div>
+        <span class="status-badge status-{{ booking.status }}">{{ booking.status.replace('_',' ') }}</span>
+      </div>
+      <div class="card-glam p-4 text-center">
+        <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.06em; color:#6B5E52; font-weight:600; margin-bottom:4px;">Provider</div>
+        {% if booking.provider and booking.provider.user.avatar %}
+        <img src="{{ booking.provider.user.avatar }}" alt="{{ booking.provider.user.full_name }}" class="track-avatar" />
+        {% elif booking.provider %}
+        <div class="track-avatar-fallback">{{ booking.provider.user.full_name[0] }}</div>
+        {% endif %}
+        <div style="font-weight:700; font-size:0.875rem;">{{ booking.provider.user.full_name if booking.provider else '—' }}</div>
+      </div>
+      <div class="card-glam p-4 text-center">
+        <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.06em; color:#6B5E52; font-weight:600; margin-bottom:4px;">Client</div>
+        {% if booking.client.avatar %}
+        <img src="{{ booking.client.avatar }}" alt="{{ booking.client.full_name }}" class="track-avatar" />
+        {% else %}
+        <div class="track-avatar-fallback">{{ booking.client.full_name[0] }}</div>
+        {% endif %}
+        <div style="font-weight:700; font-size:0.875rem;">{{ booking.client.full_name }}</div>
+      </div>
+    </div>
+
+    <!-- Map -->
+    <div class="card-glam overflow-hidden flex-1" style="position:relative;">
+      <div id="map"></div>
+
+      <!-- Share Location Button -->
+      <div style="position:absolute; bottom:20px; left:50%; transform:translateX(-50%); z-index:999;">
+        <button onclick="shareMyLocation()" id="shareBtn"
+          class="btn-gold px-5 py-2.5 text-sm flex items-center gap-2 shadow-lg">
+          <i class="fas fa-crosshairs"></i>
+          <span id="shareBtnText">Share My Location</span>
+        </button>
+      </div>
+
+      <!-- Legend -->
+      <div style="position:absolute; top:14px; right:14px; z-index:999; background:#fff; border-radius:6px; padding:10px 14px; box-shadow:0 2px 10px rgba(0,0,0,0.1); font-size:0.78rem;">
+        <div class="flex items-center gap-2 mb-1">
+          <div style="width:12px; height:12px; border-radius:50%; background:#C9A84C;"></div>
+          <span style="color:#1A1410; font-weight:600;">Provider</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div style="width:12px; height:12px; border-radius:50%; background:#3b82f6;"></div>
+          <span style="color:#1A1410; font-weight:600;">Client</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const BOOKING_ID = '{{ booking.id }}';
+const USER_ID = Number('{{ current_user.id }}');
+const ROLE = '{{ role }}';
+const PROVIDER_USER_ID =
+  '{{ provider_user_id }}' !== 'None'
+    ? Number('{{ provider_user_id }}')
+    : null;
+const INITIAL_LOCATIONS = {{ locations | tojson | safe }};
+const USER_AVATARS = {{ avatars | tojson | safe }};
+
+// --- Map Setup ---
+const map = L.map('map').setView([6.5244, 3.3792], 13); // Default: Lagos
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors',
+  maxZoom: 19,
+}).addTo(map);
+
+// Custom marker icons
+function makeIcon(color, avatarUrl = null) {
+  const inner = avatarUrl
+    ? `<img src="${avatarUrl}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;transform:rotate(45deg);" />`
+    : '';
+  return L.divIcon({
+    className: '',
+    html: `<div style="width:38px;height:38px;border-radius:50% 50% 50% 0;background:${color};transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;overflow:hidden;">${inner}</div>`,
+    iconSize: [38, 38],
+    iconAnchor: [19, 38],
+    popupAnchor: [0, -36],
+  });
+}
+
+const markers = {};
+
+function iconForUser(userId, color) {
+  return makeIcon(color, USER_AVATARS[String(userId)] || null);
+}
+
+function addOrMoveMarker(userId, lat, lng, label, icon) {
+  if (markers[userId]) {
+    markers[userId].setLatLng([lat, lng]);
+  } else {
+    markers[userId] = L.marker([lat, lng], { icon })
+      .addTo(map)
+      .bindPopup(`<strong>${label}</strong><br><small>${lat.toFixed(5)}, ${lng.toFixed(5)}</small>`);
+  }
+}
+
+// Load initial locations
+Object.entries(INITIAL_LOCATIONS).forEach(([uid, loc]) => {
+  const isProvider = parseInt(uid) === PROVIDER_USER_ID;
+  const icon = iconForUser(uid, isProvider ? '#C9A84C' : '#3b82f6');
+  const label = isProvider ? 'Provider' : 'Client';
+  addOrMoveMarker(uid, loc.lat, loc.lng, label, icon);
+});
+
+if (Object.keys(INITIAL_LOCATIONS).length > 0) {
+  const pts = Object.values(INITIAL_LOCATIONS).map(l => [l.lat, l.lng]);
+  if (pts.length === 1) map.setView(pts[0], 15);
+  else map.fitBounds(pts, { padding: [40, 40] });
+}
+
+// --- SocketIO ---
+const socket = io();
+socket.emit('join_booking', { booking_id: BOOKING_ID });
+
+socket.on('connect', () => {
+  document.getElementById('statusDot').style.background = '#10b981';
+  document.getElementById('statusText').textContent = 'Connected';
+});
+socket.on('disconnect', () => {
+  document.getElementById('statusDot').style.background = '#ef4444';
+  document.getElementById('statusText').textContent = 'Disconnected';
+});
+
+socket.on('location_updated', function(data) {
+  const uid = data.user_id.toString();
+  const isProvider = data.user_id === PROVIDER_USER_ID;
+  const isMe = data.user_id === USER_ID;
+  const icon = iconForUser(uid, isMe ? '#1A1410' : (isProvider ? '#C9A84C' : '#3b82f6'));
+  const label = isMe ? 'You' : (isProvider ? 'Provider' : 'Client');
+  addOrMoveMarker(uid, data.latitude, data.longitude, label, icon);
+
+  document.getElementById('statusDot').style.background = '#10b981';
+  document.getElementById('statusText').textContent = `${label} location updated`;
+});
+
+// --- Share Location ---
+let sharingInterval = null;
+let isSharing = false;
+
+function shareMyLocation() {
+  if (!navigator.geolocation) {
+    alert('Geolocation is not supported by your browser.');
+    return;
+  }
+  if (isSharing) {
+    stopSharing();
+    return;
+  }
+  startSharing();
+}
+
+function startSharing() {
+  isSharing = true;
+  const btn = document.getElementById('shareBtn');
+  const btnText = document.getElementById('shareBtnText');
+  btn.style.background = 'linear-gradient(135deg,#ef4444,#dc2626)';
+  btnText.textContent = 'Stop Sharing';
+
+  function send() {
+    navigator.geolocation.getCurrentPosition(pos => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      socket.emit('location_update', {
+        booking_id: BOOKING_ID,
+        user_id: USER_ID,
+        latitude: lat,
+        longitude: lng,
+        role: ROLE,
+      });
+      // Center map on my position first time
+      map.setView([lat, lng], 15);
+    }, err => {
+      console.warn('Geolocation error:', err.message);
+    }, { enableHighAccuracy: true, timeout: 10000 });
+  }
+
+  send();
+  sharingInterval = setInterval(send, 5000); // Update every 5s
+}
+
+function stopSharing() {
+  isSharing = false;
+  clearInterval(sharingInterval);
+  const btn = document.getElementById('shareBtn');
+  const btnText = document.getElementById('shareBtnText');
+  btn.style.background = '';
+  btnText.textContent = 'Share My Location';
+}
+</script>
+{% endblock %}

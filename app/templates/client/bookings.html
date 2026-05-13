@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}My Bookings — BookGlam{% endblock %}
+{% block content %}
+<div class="dash-layout flex min-h-screen" style="background:#FAF6F0;">
+  <aside id="dash-sidebar" style="width:230px; background:#fff; border-right:1px solid #f0e8df; flex-shrink:0;" class="flex flex-col py-6 px-3">
+    <div class="px-3 mb-6"><div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:#C9A84C; font-weight:700;">Client Panel</div></div>
+    <a href="{{ url_for('client.dashboard') }}" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="{{ url_for('client.book') }}" class="sidebar-link"><i class="fas fa-plus-circle"></i> Book Service</a>
+    <a href="{{ url_for('client.bookings') }}" class="sidebar-link active"><i class="fas fa-calendar-alt"></i> My Bookings</a>
+    <a href="{{ url_for('client.profile') }}" class="sidebar-link"><i class="fas fa-user-circle"></i> Profile</a>
+    <div class="mt-auto pt-4 border-t border-gray-100">
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link" style="color:#ef4444;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+  <main class="flex-1 p-6 md:p-8">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 style="font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:700;">My Bookings</h1>
+        <p style="color:#6B5E52; margin-top:4px;">All your service requests and history</p>
+      </div>
+      <a href="{{ url_for('client.book') }}" class="btn-gold px-5 py-2.5 text-sm">+ New Booking</a>
+    </div>
+    <div class="card-glam overflow-hidden">
+      {% if bookings %}
+      <table>
+        <thead><tr>
+          <th>Service</th><th>Type</th><th>Tier</th><th>Price</th><th>Date</th><th>Status</th><th></th>
+        </tr></thead>
+        <tbody>
+          {% for b in bookings %}
+          <tr>
+            <td><div style="font-weight:600;">{{ b.service.name }}</div><div style="color:#9ca3af; font-size:0.78rem;">{{ b.service.category.name }}</div></td>
+            <td><span style="font-size:0.85rem;">{% if b.booking_type == 'home' %}<i class="fas fa-home mr-1" style="color:#C9A84C;"></i>{% else %}<i class="fas fa-store mr-1" style="color:#C9A84C;"></i>{% endif %}{{ b.booking_type|capitalize }}</span></td>
+            <td><span class="badge-tier-{{ b.service_tier }} px-2 py-1 rounded text-xs font-semibold">{{ b.service_tier|capitalize }}</span></td>
+            <td style="font-weight:600;">{% if b.price %}₦{{ "{:,.0f}".format(b.price) }}{% else %}—{% endif %}</td>
+            <td style="font-size:0.85rem; color:#6B5E52;">{{ b.created_at.strftime('%b %d, %Y') }}</td>
+            <td><span class="status-badge status-{{ b.status }}">{{ b.status.replace('_',' ') }}</span></td>
+            <td><a href="{{ url_for('client.booking_detail', booking_id=b.id) }}" style="color:#C9A84C; font-size:0.85rem; font-weight:600;">View</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="text-center py-16" style="color:#6B5E52;">
+        <i class="fas fa-calendar-alt" style="font-size:2.5rem; color:#d4c4b0; display:block; margin-bottom:12px;"></i>
+        <p style="font-weight:600; margin-bottom:6px;">No bookings yet</p>
+        <a href="{{ url_for('client.book') }}" class="btn-gold px-6 py-2.5 text-sm inline-block mt-3">Book Your First Service</a>
+      </div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+{% endblock %}

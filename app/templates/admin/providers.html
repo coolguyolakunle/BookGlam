@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% block title %}Manage Providers — BookGlam Admin{% endblock %}
+{% block content %}
+<div class="flex min-h-screen" style="background:#FAF6F0;">
+  <aside style="width:230px; background:#1A1410; flex-shrink:0;" class="hidden md:flex flex-col py-6 px-3">
+    <div class="px-3 mb-8">
+      <div style="font-family:'Playfair Display',serif; font-weight:700; font-size:1.2rem; color:#fff;">Book<span style="color:#C9A84C;">Glam</span></div>
+      <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:#C9A84C; font-weight:700; margin-top:4px;">Admin Panel</div>
+    </div>
+    <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link" style="color:#c4b49e;"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a href="{{ url_for('admin.providers') }}" class="sidebar-link active" style="color:#c4b49e;"><i class="fas fa-user-check"></i> Providers</a>
+    <a href="{{ url_for('admin.users') }}" class="sidebar-link" style="color:#c4b49e;"><i class="fas fa-users"></i> Users</a>
+    <a href="{{ url_for('admin.bookings') }}" class="sidebar-link" style="color:#c4b49e;"><i class="fas fa-calendar-alt"></i> Bookings</a>
+    <a href="{{ url_for('admin.withdrawals') }}" class="sidebar-link" style="color:#c4b49e;"><i class="fas fa-money-bill-wave"></i> Withdrawals</a>
+    <a href="{{ url_for('admin.services') }}" class="sidebar-link" style="color:#c4b49e;"><i class="fas fa-cut"></i> Services</a>
+    <div class="mt-auto pt-4" style="border-top:1px solid #2e2520;">
+      <a href="{{ url_for('admin.change_password') }}" class="sidebar-link {% if request.endpoint == 'admin.change_password' %}active{% endif %}" style="color:#c4b49e;"><i class="fas fa-key"></i> Change Password</a>
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link" style="color:#ef6b6b;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+
+  <main class="flex-1 p-6 md:p-8">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 style="font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:700;">Manage Providers</h1>
+        <p style="color:#6B5E52; margin-top:4px;">{{ providers|length }} total providers registered</p>
+      </div>
+    </div>
+
+    <!-- Filter tabs -->
+    <div class="flex gap-2 mb-6">
+      <button onclick="filterTable('all')" class="filter-btn px-4 py-2 rounded text-sm font-semibold" id="filter-all" style="background:#C9A84C; color:#1A1410;">All</button>
+      <button onclick="filterTable('pending')" class="filter-btn px-4 py-2 rounded text-sm font-semibold" id="filter-pending" style="background:#fff; color:#6B5E52; border:1px solid #e5ddd4;">Pending</button>
+      <button onclick="filterTable('verified')" class="filter-btn px-4 py-2 rounded text-sm font-semibold" id="filter-verified" style="background:#fff; color:#6B5E52; border:1px solid #e5ddd4;">Verified</button>
+    </div>
+
+    <div class="card-glam overflow-hidden">
+      {% if providers %}
+      <table id="providerTable">
+        <thead><tr>
+          <th>Provider</th><th>Specialties</th><th>Location</th><th>Tier</th><th>Rating</th><th>Online</th><th>Status</th><th>Action</th>
+        </tr></thead>
+        <tbody>
+          {% for p in providers %}
+          <tr data-verified="{{ 'verified' if p.is_verified else 'pending' }}">
+            <td>
+              <div class="flex items-center gap-3">
+                <div style="width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg,#C9A84C,#E8C96B); display:flex; align-items:center; justify-content:center; font-weight:700; color:#1A1410; flex-shrink:0;">{{ p.user.full_name[0] }}</div>
+                <div>
+                  <div style="font-weight:600; font-size:0.875rem;">{{ p.user.full_name }}</div>
+                  <div style="color:#9ca3af; font-size:0.78rem;">{{ p.user.email }}</div>
+                </div>
+              </div>
+            </td>
+            <td style="font-size:0.85rem; color:#6B5E52;">{{ p.specialties or '—' }}</td>
+            <td style="font-size:0.85rem; color:#6B5E52;">{{ p.location or '—' }}</td>
+            <td><span class="badge-tier-{{ p.tier }} px-2 py-0.5 rounded text-xs font-semibold">{{ p.tier|capitalize }}</span></td>
+            <td>
+              <span style="color:#f59e0b; font-size:0.85rem;"><i class="fas fa-star text-xs"></i> {{ "%.1f"|format(p.rating) }}</span>
+              <span style="color:#9ca3af; font-size:0.78rem;">({{ p.total_reviews }})</span>
+            </td>
+            <td>
+              <span style="width:10px; height:10px; border-radius:50%; display:inline-block; background:{% if p.is_online %}#10b981{% else %}#d1d5db{% endif %};"></span>
+            </td>
+            <td>
+              {% if p.is_verified %}
+              <span style="background:#d1fae5; color:#065f46; padding:3px 10px; border-radius:50px; font-size:0.75rem; font-weight:600;">Verified</span>
+              {% else %}
+              <span style="background:#fef3c7; color:#d97706; padding:3px 10px; border-radius:50px; font-size:0.75rem; font-weight:600;">Pending</span>
+              {% endif %}
+            </td>
+            <td>
+              <form method="POST" action="{{ url_for('admin.verify_provider', provider_id=p.id) }}" class="inline">
+                <button type="submit" class="text-xs px-3 py-1.5 rounded font-semibold transition-all
+                  {% if p.is_verified %}border border-red-200 text-red-600 hover:bg-red-50{% else %}btn-gold{% endif %}">
+                  {% if p.is_verified %}Revoke{% else %}Verify{% endif %}
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="text-center py-14" style="color:#6B5E52;"><i class="fas fa-user-tie" style="font-size:2rem; color:#d4c4b0; display:block; margin-bottom:10px;"></i>No providers registered yet.</div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function filterTable(type) {
+  document.querySelectorAll('.filter-btn').forEach(b => { b.style.background='#fff'; b.style.color='#6B5E52'; b.style.border='1px solid #e5ddd4'; });
+  document.getElementById('filter-' + type).style.background = '#C9A84C';
+  document.getElementById('filter-' + type).style.color = '#1A1410';
+  document.getElementById('filter-' + type).style.border = 'none';
+  document.querySelectorAll('#providerTable tbody tr').forEach(row => {
+    if (type === 'all') { row.style.display = ''; }
+    else { row.style.display = row.dataset.verified === type ? '' : 'none'; }
+  });
+}
+</script>
+{% endblock %}

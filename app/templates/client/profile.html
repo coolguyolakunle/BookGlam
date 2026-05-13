@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}My Profile — BookGlam{% endblock %}
+{% block content %}
+<div class="dash-layout flex min-h-screen" style="background:#FAF6F0;">
+  <aside id="dash-sidebar" style="width:230px; background:#fff; border-right:1px solid #f0e8df; flex-shrink:0;" class="flex flex-col py-6 px-3">
+    <div class="px-3 mb-6"><div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:#C9A84C; font-weight:700;">Client Panel</div></div>
+    <a href="{{ url_for('client.dashboard') }}" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="{{ url_for('client.book') }}" class="sidebar-link"><i class="fas fa-plus-circle"></i> Book Service</a>
+    <a href="{{ url_for('client.bookings') }}" class="sidebar-link"><i class="fas fa-calendar-alt"></i> My Bookings</a>
+    <a href="{{ url_for('client.profile') }}" class="sidebar-link active"><i class="fas fa-user-circle"></i> Profile</a>
+    <div class="mt-auto pt-4 border-t border-gray-100">
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link" style="color:#ef4444;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+  <main class="flex-1 p-6 md:p-8 max-w-2xl">
+    <h1 style="font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:700; margin-bottom:24px;">My Profile</h1>
+    <div class="card-glam p-8">
+      <div class="flex items-center gap-5 mb-8 pb-6" style="border-bottom:1px solid #f0e8df;">
+        {% if current_user.avatar %}
+        <img src="{{ current_user.avatar }}" alt="{{ current_user.full_name }}" style="width:72px; height:72px; border-radius:50%; object-fit:cover; flex-shrink:0;" />
+        {% else %}
+        <div style="width:72px; height:72px; border-radius:50%; background:linear-gradient(135deg,#C9A84C,#E8C96B); display:flex; align-items:center; justify-content:center; font-family:'Playfair Display',serif; font-weight:700; font-size:1.6rem; color:#1A1410; flex-shrink:0;">{{ current_user.full_name[0] }}</div>
+        {% endif %}
+        <div>
+          <div style="font-weight:700; font-size:1.1rem;">{{ current_user.full_name }}</div>
+          <div style="color:#6B5E52; font-size:0.875rem;">{{ current_user.email }}</div>
+          <div class="mt-1"><span style="background:#d1fae5; color:#065f46; padding:2px 10px; border-radius:50px; font-size:0.75rem; font-weight:600;">Client</span></div>
+        </div>
+      </div>
+      <form method="POST" enctype="multipart/form-data" class="space-y-5">
+        <div>
+          <label>Profile Picture</label>
+          <input type="file" name="avatar" accept="image/*" />
+        </div>
+        <div>
+          <label>Full Name</label>
+          <input type="text" name="full_name" value="{{ current_user.full_name }}" required />
+        </div>
+        <div>
+          <label>Email Address</label>
+          <input type="email" value="{{ current_user.email }}" disabled style="background:#f9f9f9; color:#9ca3af; cursor:not-allowed;" />
+        </div>
+        <div>
+          <label>Phone Number</label>
+          <input type="tel" name="phone" value="{{ current_user.phone or '' }}" placeholder="+234 800 000 0000" />
+        </div>
+        <div style="padding-top:8px;">
+          <button type="submit" class="btn-gold px-6 py-2.5">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </main>
+</div>
+{% endblock %}

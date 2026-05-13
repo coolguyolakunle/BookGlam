@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block title %}Choose Provider — BookGlam{% endblock %}
+{% block content %}
+<div class="dash-layout flex min-h-screen" style="background:#FAF6F0;">
+  <aside id="dash-sidebar" style="width:230px; background:#fff; border-right:1px solid #f0e8df; flex-shrink:0;" class="flex flex-col py-6 px-3">
+    <div class="px-3 mb-6"><div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:#C9A84C; font-weight:700;">Client Panel</div></div>
+    <a href="{{ url_for('client.dashboard') }}" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="{{ url_for('client.book') }}" class="sidebar-link active"><i class="fas fa-plus-circle"></i> Book Service</a>
+    <a href="{{ url_for('client.bookings') }}" class="sidebar-link"><i class="fas fa-calendar-alt"></i> My Bookings</a>
+    <a href="{{ url_for('client.profile') }}" class="sidebar-link"><i class="fas fa-user-circle"></i> Profile</a>
+    <div class="mt-auto pt-4 border-t border-gray-100">
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link" style="color:#ef4444;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+
+  <main class="flex-1 p-5 md:p-8">
+    <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5 mb-7">
+      <div>
+        <a href="{{ url_for('client.book') }}" style="color:#6B5E52; font-size:0.875rem;" class="inline-flex items-center gap-2 mb-4 hover:text-gray-900 transition-colors">
+          <i class="fas fa-arrow-left text-xs"></i> Edit details
+        </a>
+        <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.12em; color:#C9A84C; font-weight:700; margin-bottom:8px;">Booking #{{ booking.id }} · {{ booking.service.category.name }}</div>
+        <h1 style="font-family:'Playfair Display',serif; font-size:clamp(1.8rem,4vw,2.6rem); font-weight:700; line-height:1;">Choose your provider</h1>
+        <p style="color:#6B5E52; margin-top:10px; max-width:680px;">Available {{ booking.service.name }} specialists near your area, filtered for this MVP with realistic sample availability.</p>
+      </div>
+      <div class="card-glam p-4" style="min-width:260px;">
+        <div class="flex justify-between text-sm mb-2"><span style="color:#6B5E52;">Service</span><strong>{{ booking.service.name }}</strong></div>
+        <div class="flex justify-between text-sm mb-2"><span style="color:#6B5E52;">Tier</span><span class="badge-tier-{{ booking.service_tier }} px-2 py-0.5 rounded text-xs font-semibold">{{ booking.service_tier|capitalize }}</span></div>
+        <div class="flex justify-between text-sm"><span style="color:#6B5E52;">Total</span><strong style="color:#C9A84C;">{% if booking.price %}₦{{ "{:,.0f}".format(booking.price) }}{% else %}TBD{% endif %}</strong></div>
+      </div>
+    </div>
+
+    {% if provider_cards %}
+    <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
+      {% for item in provider_cards %}
+      {% set profile = item.profile %}
+      {% set stats = item.stats %}
+      <article class="card-glam overflow-hidden flex flex-col">
+        <div class="p-5 pb-4">
+          <div class="flex items-start gap-4">
+            {% if profile.user.avatar %}
+            <img src="{{ profile.user.avatar }}" alt="{{ profile.user.full_name }}" style="width:74px; height:74px; border-radius:50%; object-fit:cover; flex-shrink:0;" />
+            {% else %}
+            <div style="width:74px; height:74px; border-radius:50%; background:linear-gradient(135deg,#C9A84C,#E8C96B); display:flex; align-items:center; justify-content:center; font-family:'Playfair Display',serif; font-weight:700; font-size:1.7rem; color:#1A1410; flex-shrink:0;">{{ profile.user.full_name[0] }}</div>
+            {% endif %}
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2 mb-1">
+                <h2 style="font-family:'Playfair Display',serif; font-size:1.28rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ profile.user.full_name }}</h2>
+                {% if profile.is_online %}<span style="width:8px; height:8px; border-radius:50%; background:#10b981; flex-shrink:0;"></span>{% endif %}
+              </div>
+              <div class="flex flex-wrap items-center gap-2" style="color:#6B5E52; font-size:0.84rem;">
+                <span><i class="fas fa-star" style="color:#f59e0b;"></i> {{ "%.1f"|format(stats.rating) }}</span>
+                <span>{{ stats.completed_jobs }} jobs</span>
+                <span class="badge-tier-{{ profile.tier }} px-2 py-0.5 rounded text-xs font-semibold">{{ profile.tier|capitalize }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 my-4">
+            <div style="background:#faf7f3; border:1px solid #f0e8df; padding:11px;">
+              <div style="font-size:0.72rem; color:#8a7a6a; text-transform:uppercase; letter-spacing:0.08em;">Distance</div>
+              <div style="font-weight:700;">{{ stats.distance }}km away</div>
+            </div>
+            <div style="background:#faf7f3; border:1px solid #f0e8df; padding:11px;">
+              <div style="font-size:0.72rem; color:#8a7a6a; text-transform:uppercase; letter-spacing:0.08em;">ETA</div>
+              <div style="font-weight:700;">{{ stats.eta }} mins</div>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-2 mb-4">
+            {% for specialty in stats.specialties %}
+            <span style="background:rgba(201,168,76,0.12); color:#7a5e1d; padding:5px 9px; border-radius:50px; font-size:0.75rem; font-weight:700;">{{ specialty }}</span>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-1 px-5">
+          {% for media in item.portfolio %}
+          <img src="{{ media.url }}" alt="{{ profile.user.full_name }} portfolio" style="width:100%; aspect-ratio:1/1; object-fit:cover; display:block;" />
+          {% endfor %}
+          {% for i in range(3 - item.portfolio|length) %}
+          <div style="width:100%; aspect-ratio:1/1; background:#f0e8df; display:flex; align-items:center; justify-content:center; color:#c9bba8;"><i class="fas fa-image"></i></div>
+          {% endfor %}
+        </div>
+
+        <div class="p-5 mt-auto grid grid-cols-2 gap-3">
+          <a href="{{ url_for('client.provider_profile', provider_id=profile.id, booking_id=booking.id) }}" class="btn-outline-gold px-4 py-2.5 text-sm text-center">View Profile</a>
+          <form method="POST" action="{{ url_for('client.choose_provider', booking_id=booking.id, provider_id=profile.id) }}">
+            <button type="submit" class="btn-gold px-4 py-2.5 text-sm w-full">Select Provider</button>
+          </form>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="card-glam p-12 text-center" style="color:#6B5E52;">
+      <i class="fas fa-user-clock" style="font-size:2rem; color:#d4c4b0; display:block; margin-bottom:10px;"></i>
+      No providers are available for this service yet.
+    </div>
+    {% endif %}
+  </main>
+</div>
+{% endblock %}

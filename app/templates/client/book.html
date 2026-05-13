@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% block title %}Book a Service — BookGlam{% endblock %}
+{% block content %}
+<div class="dash-layout flex min-h-screen" style="background:#FAF6F0;">
+  <aside id="dash-sidebar" style="width:230px; background:#fff; border-right:1px solid #f0e8df; flex-shrink:0;" class="flex flex-col py-6 px-3">
+    <div class="px-3 mb-6"><div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:#C9A84C; font-weight:700;">Client Panel</div></div>
+    <a href="{{ url_for('client.dashboard') }}" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="{{ url_for('client.book') }}" class="sidebar-link active"><i class="fas fa-plus-circle"></i> Book Service</a>
+    <a href="{{ url_for('client.bookings') }}" class="sidebar-link"><i class="fas fa-calendar-alt"></i> My Bookings</a>
+    <a href="{{ url_for('client.profile') }}" class="sidebar-link"><i class="fas fa-user-circle"></i> Profile</a>
+    <div class="mt-auto pt-4 border-t border-gray-100">
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link" style="color:#ef4444;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+
+  <main class="flex-1 p-6 md:p-8">
+    <h1 style="font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:700; margin-bottom:4px;">Book a Service</h1>
+    <p style="color:#6B5E52; margin-bottom:32px;">Fill in the details below to request your beauty service.</p>
+
+    <form method="POST" class="grid md:grid-cols-2 gap-6">
+      <!-- Category & Service -->
+      <div class="card-glam p-6 md:col-span-2">
+        <h3 style="font-family:'Playfair Display',serif; font-weight:600; margin-bottom:16px;">Choose Service</h3>
+        <div class="grid md:grid-cols-4 gap-3 mb-5">
+          {% for cat in categories %}
+          <button type="button" onclick="filterCategory('{{ cat.id }}')"
+            class="cat-btn p-3 rounded text-center border-2 transition-all"
+            id="cat-{{ cat.id }}"
+            style="border-color:#e5ddd4; background:#fff; cursor:pointer;">
+            <div style="font-weight:600; font-size:0.9rem;">{{ cat.name }}</div>
+          </button>
+          {% endfor %}
+        </div>
+        <div>
+          <label>Service <span style="color:#ef4444;">*</span></label>
+          <select name="service_id" id="serviceSelect" required onchange="updatePrice()">
+            <option value="">— Select a service —</option>
+            {% for svc in services %}
+            <option value="{{ svc.id }}" data-cat="{{ svc.category_id }}"
+              data-basic="{{ svc.base_price_basic }}"
+              data-standard="{{ svc.base_price_standard }}"
+              data-premium="{{ svc.base_price_premium }}">
+              {{ svc.name }} ({{ svc.category.name }}) — from ₦{{ "{:,.0f}".format(svc.base_price_basic) }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <!-- Tier -->
+      <div class="card-glam p-6">
+        <h3 style="font-family:'Playfair Display',serif; font-weight:600; margin-bottom:16px;">Service Tier</h3>
+        <div class="space-y-3">
+          {% for tier, label, desc in [('basic','Basic','Affordable, nearby providers'),('standard','Standard','Balanced quality & value'),('premium','Premium','Top-rated luxury experience')] %}
+          <label class="flex items-center gap-3 p-3 rounded border-2 cursor-pointer tier-option transition-all"
+            id="tier-label-{{ tier }}"
+            style="border-color:#e5ddd4;"
+            onclick="selectTier('{{ tier }}')">
+            <input type="radio" name="tier" value="{{ tier }}" {% if tier == 'standard' %}checked{% endif %} class="hidden" />
+            <div class="badge-tier-{{ tier }} px-3 py-1 rounded text-xs font-semibold">{{ label }}</div>
+            <div>
+              <div style="font-weight:600; font-size:0.9rem;">{{ label }}</div>
+              <div style="color:#6B5E52; font-size:0.8rem;">{{ desc }}</div>
+            </div>
+            <div class="ml-auto" style="font-weight:700;" id="price-{{ tier }}">—</div>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Booking Type & Timing -->
+      <div class="card-glam p-6">
+        <h3 style="font-family:'Playfair Display',serif; font-weight:600; margin-bottom:16px;">Booking Type</h3>
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <label class="block p-3 rounded border-2 cursor-pointer text-center" style="border-color:#C9A84C; background:rgba(201,168,76,0.05);">
+            <input type="radio" name="booking_type" value="home" checked class="hidden" />
+            <i class="fas fa-home" style="color:#C9A84C; display:block; font-size:1.2rem; margin-bottom:4px;"></i>
+            <span style="font-weight:600; font-size:0.9rem;">Home Visit</span>
+          </label>
+          <label class="block p-3 rounded border-2 cursor-pointer text-center" style="border-color:#e5ddd4;">
+            <input type="radio" name="booking_type" value="shop" class="hidden" />
+            <i class="fas fa-store" style="display:block; font-size:1.2rem; margin-bottom:4px; color:#6B5E52;"></i>
+            <span style="font-weight:600; font-size:0.9rem;">Shop Visit</span>
+          </label>
+        </div>
+        <div class="flex items-center gap-3 mb-4">
+          <label class="flex items-center gap-2 mb-0 cursor-pointer" style="font-weight:400; font-size:0.9rem;">
+            <input type="checkbox" name="is_instant" value="true" id="instantCheck" style="width:auto;" onchange="toggleSchedule()" />
+            <span style="font-weight:600; color:#C9A84C;"><i class="fas fa-bolt mr-1"></i> Instant Request</span>
+          </label>
+        </div>
+        <div id="scheduleBox">
+          <label>Preferred Date & Time</label>
+          <input type="datetime-local" name="scheduled_at" />
+        </div>
+      </div>
+
+      <!-- Address & Payment -->
+      <div class="card-glam p-6">
+        <h3 style="font-family:'Playfair Display',serif; font-weight:600; margin-bottom:16px;">Location & Payment</h3>
+        <div class="space-y-4">
+          <div>
+            <label>Your Address (for home visits)</label>
+            <input type="text" name="address" placeholder="12 Allen Avenue, Ikeja, Lagos" />
+          </div>
+          <div>
+            <label>Payment Method</label>
+            <select name="payment_method">
+              <option value="cash">💵 Cash on Service</option>
+              <option value="transfer">🏦 Bank Transfer</option>
+              <option value="wallet">👛 BookGlam Wallet</option>
+              <option value="card">💳 Debit/Credit Card</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="card-glam p-6">
+        <h3 style="font-family:'Playfair Display',serif; font-weight:600; margin-bottom:16px;">Style Notes</h3>
+        <div class="space-y-4">
+          <div>
+            <label>Notes for Provider</label>
+            <textarea name="notes" rows="3" placeholder="Any special instructions, style preferences…"></textarea>
+          </div>
+          <div style="border:1px solid #f0e8df; background:#faf7f3; padding:14px; color:#6B5E52; font-size:0.88rem;">
+            After saving these details, you will choose from available providers with ratings, portfolios, distance and ETA.
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary & Submit -->
+      <div class="md:col-span-2 card-glam p-6" style="background:linear-gradient(135deg,#1A1410,#2E1F14); color:#fff;">
+        <div class="flex items-center justify-between">
+          <div>
+            <div style="font-size:0.8rem; color:#8a7a6a; margin-bottom:4px;">Estimated Total</div>
+            <div style="font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:700; color:#C9A84C;" id="totalPrice">Select a service</div>
+            <div style="font-size:0.8rem; color:#8a7a6a;">15% platform commission included</div>
+          </div>
+          <button type="submit" class="btn-gold px-8 py-3.5 text-base">Continue to Providers <i class="fas fa-arrow-right ml-2"></i></button>
+        </div>
+      </div>
+    </form>
+  </main>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+let currentTier = 'standard';
+function selectTier(tier) {
+  currentTier = tier;
+  document.querySelectorAll('.tier-option').forEach(el => el.style.borderColor = '#e5ddd4');
+  document.getElementById('tier-label-' + tier).style.borderColor = '#C9A84C';
+  document.querySelectorAll('input[name=tier]').forEach(r => r.checked = r.value === tier);
+  updatePrice();
+}
+function updatePrice() {
+  const sel = document.getElementById('serviceSelect');
+  const opt = sel.options[sel.selectedIndex];
+  if (!opt.value) { document.getElementById('totalPrice').textContent = 'Select a service'; return; }
+  const prices = { basic: opt.dataset.basic, standard: opt.dataset.standard, premium: opt.dataset.premium };
+  ['basic','standard','premium'].forEach(t => {
+    const el = document.getElementById('price-' + t);
+    if (el) el.textContent = '₦' + parseInt(prices[t]).toLocaleString();
+  });
+  const total = parseInt(prices[currentTier]);
+  document.getElementById('totalPrice').textContent = '₦' + total.toLocaleString();
+}
+function filterCategory(catId) {
+  document.querySelectorAll('.cat-btn').forEach(b => { b.style.borderColor='#e5ddd4'; b.style.background='#fff'; b.style.color='#1A1410'; });
+  const btn = document.getElementById('cat-' + catId);
+  btn.style.borderColor = '#C9A84C'; btn.style.background = 'rgba(201,168,76,0.08)';
+  const sel = document.getElementById('serviceSelect');
+  Array.from(sel.options).forEach(o => {
+    if (o.value === '') return;
+    o.hidden = o.dataset.cat != catId;
+  });
+  sel.value = '';
+  document.getElementById('totalPrice').textContent = 'Select a service';
+}
+function toggleSchedule() {
+  document.getElementById('scheduleBox').style.display = document.getElementById('instantCheck').checked ? 'none' : 'block';
+}
+selectTier('standard');
+</script>
+{% endblock %}

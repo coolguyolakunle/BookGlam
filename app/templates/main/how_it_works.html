@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}How It Works — BookGlam{% endblock %}
+{% block content %}
+<section style="background:linear-gradient(135deg,#1A1410,#2E1F14); padding:60px 0 50px;">
+  <div class="max-w-7xl mx-auto px-6 text-center">
+    <p style="color:#C9A84C; font-size:0.8rem; letter-spacing:0.12em; text-transform:uppercase; font-weight:600; margin-bottom:10px;">Simple Process</p>
+    <h1 style="font-family:'Playfair Display',serif; font-size:2.6rem; font-weight:700; color:#fff; margin-bottom:14px;">How BookGlam Works</h1>
+    <p style="color:#c4b49e; max-width:500px; margin:0 auto;">From browsing to being served — it takes less than 2 minutes to book your next beauty service.</p>
+  </div>
+</section>
+
+<!-- For Clients -->
+<section class="py-20 max-w-7xl mx-auto px-6">
+  <div class="text-center mb-14">
+    <p style="color:#C9A84C; font-size:0.8rem; letter-spacing:0.12em; text-transform:uppercase; font-weight:600;">For Clients</p>
+    <h2 style="font-family:'Playfair Display',serif; font-size:2rem; font-weight:700; margin-top:8px;">Getting Beautified</h2>
+  </div>
+  <div class="grid md:grid-cols-4 gap-8">
+    {% for step, icon, title, desc in [
+      ('1','fas fa-user-plus','Create Account','Sign up free as a client. Takes under a minute.'),
+      ('2','fas fa-search','Browse Services','Explore hair, makeup, barbing, nails, and more across all tiers.'),
+      ('3','fas fa-calendar-check','Book Instantly','Request now or schedule ahead. Choose home visit or shop.'),
+      ('4','fas fa-map-marker-alt','Get Served','Track your provider live. Pay when done.'),
+    ] %}
+    <div class="text-center">
+      <div style="width:72px; height:72px; border-radius:50%; background:#fff; margin:0 auto 16px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 20px rgba(0,0,0,0.08); position:relative;">
+        <i class="{{ icon }}" style="color:#C9A84C; font-size:1.4rem;"></i>
+        <div style="position:absolute; top:-8px; right:-8px; width:26px; height:26px; background:#1A1410; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:700; color:#C9A84C; font-family:'Playfair Display',serif;">{{ step }}</div>
+      </div>
+      <h3 style="font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:600; margin-bottom:8px;">{{ title }}</h3>
+      <p style="color:#6B5E52; font-size:0.875rem; line-height:1.6;">{{ desc }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- For Providers -->
+<section style="background:#F5E6DC;" class="py-20">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-14">
+      <p style="color:#C9A84C; font-size:0.8rem; letter-spacing:0.12em; text-transform:uppercase; font-weight:600;">For Providers</p>
+      <h2 style="font-family:'Playfair Display',serif; font-size:2rem; font-weight:700; margin-top:8px;">Start Earning Today</h2>
+    </div>
+    <div class="grid md:grid-cols-4 gap-8">
+      {% for step, icon, title, desc in [
+        ('1','fas fa-id-badge','Sign Up & Verify','Register as a provider and submit your ID for verification.'),
+        ('2','fas fa-toggle-on','Go Online','Toggle your availability and start receiving job requests in your area.'),
+        ('3','fas fa-briefcase','Accept Jobs','Browse open requests or receive instant notifications from clients.'),
+        ('4','fas fa-wallet','Get Paid','Earn after every completed job. Withdraw to your bank anytime.'),
+      ] %}
+      <div class="text-center">
+        <div style="width:72px; height:72px; border-radius:50%; background:#fff; margin:0 auto 16px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 20px rgba(0,0,0,0.08); position:relative;">
+          <i class="{{ icon }}" style="color:#C9A84C; font-size:1.4rem;"></i>
+          <div style="position:absolute; top:-8px; right:-8px; width:26px; height:26px; background:#1A1410; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:700; color:#C9A84C; font-family:'Playfair Display',serif;">{{ step }}</div>
+        </div>
+        <h3 style="font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:600; margin-bottom:8px;">{{ title }}</h3>
+        <p style="color:#6B5E52; font-size:0.875rem; line-height:1.6;">{{ desc }}</p>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="text-center mt-12">
+      <a href="{{ url_for('auth.signup') }}?role=provider" class="btn-gold px-8 py-3.5 text-base inline-block">Join as a Provider</a>
+    </div>
+  </div>
+</section>
+
+<!-- Commission Info -->
+<section class="py-20 max-w-4xl mx-auto px-6 text-center">
+  <h2 style="font-family:'Playfair Display',serif; font-size:2rem; font-weight:700; margin-bottom:14px;">Transparent Pricing</h2>
+  <p style="color:#6B5E52; margin-bottom:32px; font-size:1.05rem;">BookGlam takes a 10–25% commission per completed service. The rest goes directly to you. No hidden fees.</p>
+  <div class="grid md:grid-cols-3 gap-5">
+    {% for tier, pct, label in [('Basic','85%','You Keep'),('Standard','82%','You Keep'),('Premium','80%','You Keep')] %}
+    <div class="card-glam p-6 text-center">
+      <span class="badge-tier-{{ tier|lower }} px-3 py-1 rounded text-sm font-semibold inline-block mb-3">{{ tier }}</span>
+      <div style="font-family:'Playfair Display',serif; font-size:2.2rem; font-weight:700; color:#C9A84C;">{{ pct }}</div>
+      <div style="color:#6B5E52; font-size:0.875rem;">{{ label }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

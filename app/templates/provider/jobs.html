@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}My Jobs — BookGlam{% endblock %}
+{% block content %}
+<div class="dash-layout flex min-h-screen" style="background:#FAF6F0;">
+  <aside id="dash-sidebar" style="width:230px; background:#fff; border-right:1px solid #f0e8df; flex-shrink:0;" class="flex flex-col py-6 px-3">
+    <div class="px-3 mb-6"><div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:#C9A84C; font-weight:700;">Provider Panel</div></div>
+    <a href="{{ url_for('provider.dashboard') }}" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="{{ url_for('provider.available_jobs') }}" class="sidebar-link"><i class="fas fa-search"></i> Available Jobs</a>
+    <a href="{{ url_for('provider.jobs') }}" class="sidebar-link active"><i class="fas fa-briefcase"></i> My Jobs</a>
+    <a href="{{ url_for('provider.earnings') }}" class="sidebar-link"><i class="fas fa-wallet"></i> Earnings</a>
+    <a href="{{ url_for('provider.profile_page') }}" class="sidebar-link"><i class="fas fa-user-circle"></i> Profile</a>
+    <div class="mt-auto pt-4 border-t border-gray-100">
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link" style="color:#ef4444;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+  <main class="flex-1 p-6 md:p-8">
+    <div class="flex items-center justify-between mb-8">
+      <h1 style="font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:700;">My Jobs</h1>
+      <div class="flex gap-2">
+        {% for s in ['all','pending','accepted','in_progress','completed','cancelled'] %}
+        <a href="{{ url_for('provider.jobs', status=s) }}"
+          class="px-3 py-1.5 rounded text-xs font-semibold transition-all"
+          style="{% if status_filter == s %}background:#C9A84C; color:#1A1410;{% else %}background:#fff; color:#6B5E52; border:1px solid #e5ddd4;{% endif %}">
+          {{ s.replace('_',' ').title() }}
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="card-glam overflow-hidden">
+      {% if jobs %}
+      <table>
+        <thead><tr><th>Client</th><th>Service</th><th>Type</th><th>Price</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody>
+          {% for b in jobs %}
+          <tr>
+            <td><div style="font-weight:600;">{{ b.client.full_name }}</div><div style="color:#9ca3af; font-size:0.78rem;">{{ b.client.phone or '' }}</div></td>
+            <td>{{ b.service.name }}</td>
+            <td>{{ b.booking_type|capitalize }}</td>
+            <td style="font-weight:600;">{% if b.price %}₦{{ "{:,.0f}".format(b.price) }}{% else %}—{% endif %}</td>
+            <td style="font-size:0.85rem; color:#6B5E52;">{{ b.created_at.strftime('%b %d, %Y') }}</td>
+            <td><span class="status-badge status-{{ b.status }}">{{ b.status.replace('_',' ') }}</span></td>
+            <td>
+              <a href="{{ url_for('provider.chat', booking_id=b.id) }}" class="text-xs px-3 py-1.5 rounded font-semibold transition-all mr-1 btn-outline-gold inline-block">
+                Chat
+              </a>
+              {% if b.status in ['accepted','on_the_way','in_progress'] %}
+              <a href="{{ url_for('provider.track', booking_id=b.id) }}" class="text-xs px-3 py-1.5 rounded font-semibold transition-all mr-1 btn-outline-gold inline-block">
+                Track
+              </a>
+              {% endif %}
+              {% set transitions = {'pending':['accepted','cancelled'],'accepted':['on_the_way','cancelled'],'on_the_way':['in_progress'],'in_progress':['completed']} %}
+              {% for next_s in transitions.get(b.status, []) %}
+              <form method="POST" action="{{ url_for('provider.update_job', booking_id=b.id) }}" class="inline">
+                <input type="hidden" name="status" value="{{ next_s }}" />
+                <button type="submit" class="text-xs px-3 py-1.5 rounded font-semibold transition-all mr-1
+                  {% if next_s == 'cancelled' %}text-red-600 border border-red-200 hover:bg-red-50
+                  {% else %}btn-gold{% endif %}">
+                  {{ next_s.replace('_',' ').title() }}
+                </button>
+              </form>
+              {% endfor %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="text-center py-14" style="color:#6B5E52;"><i class="fas fa-briefcase" style="font-size:2rem; color:#d4c4b0; display:block; margin-bottom:10px;"></i>No jobs found.</div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+{% endblock %}

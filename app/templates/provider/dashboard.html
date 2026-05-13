@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% block title %}Provider Dashboard — BookGlam{% endblock %}
+{% block content %}
+<div class="dash-layout flex min-h-screen" style="background:#FAF6F0;">
+  <aside id="dash-sidebar" style="width:230px; background:#fff; border-right:1px solid #f0e8df; flex-shrink:0;" class="flex flex-col py-6 px-3">
+    <div class="px-3 mb-6"><div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:#C9A84C; font-weight:700;">Provider Panel</div></div>
+    <a href="{{ url_for('provider.dashboard') }}" class="sidebar-link active"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="{{ url_for('provider.available_jobs') }}" class="sidebar-link"><i class="fas fa-search"></i> Available Jobs</a>
+    <a href="{{ url_for('provider.jobs') }}" class="sidebar-link"><i class="fas fa-briefcase"></i> My Jobs</a>
+    <a href="{{ url_for('provider.earnings') }}" class="sidebar-link"><i class="fas fa-wallet"></i> Earnings</a>
+    <a href="{{ url_for('provider.profile_page') }}" class="sidebar-link"><i class="fas fa-user-circle"></i> Profile</a>
+    <div class="mt-auto pt-4 border-t border-gray-100">
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link" style="color:#ef4444;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+  <main class="flex-1 p-6 md:p-8">
+    <!-- Header with availability toggle -->
+    <div class="flex items-start justify-between mb-8">
+      <div class="flex items-center gap-4">
+        {% if current_user.avatar %}
+        <img src="{{ current_user.avatar }}" alt="{{ current_user.full_name }}" style="width:58px; height:58px; border-radius:50%; object-fit:cover; flex-shrink:0;" />
+        {% else %}
+        <div style="width:58px; height:58px; border-radius:50%; background:linear-gradient(135deg,#C9A84C,#E8C96B); display:flex; align-items:center; justify-content:center; font-family:'Playfair Display',serif; font-weight:700; font-size:1.4rem; color:#1A1410; flex-shrink:0;">{{ current_user.full_name[0] }}</div>
+        {% endif %}
+        <div>
+        <h1 style="font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:700;">Provider Dashboard</h1>
+        <p style="color:#6B5E52; margin-top:4px;">Welcome back, {{ current_user.full_name.split()[0] }}</p>
+        </div>
+      </div>
+      {% if not profile.is_verified %}
+      <div style="background:#fef3c7; border:1px solid #fcd34d; border-radius:4px; padding:10px 16px; font-size:0.85rem; color:#92400e;">
+        <i class="fas fa-clock mr-2"></i><strong>Pending verification.</strong> Your account is under review.
+      </div>
+      {% else %}
+      <button onclick="toggleAvailability()" id="availBtn"
+        class="flex items-center gap-2 px-5 py-2.5 rounded font-semibold text-sm transition-all"
+        style="{% if profile.is_online %}background:#d1fae5; color:#065f46;{% else %}background:#f3f4f6; color:#6b7280;{% endif %}">
+        <i class="fas fa-circle text-xs"></i>
+        <span id="availText">{{ 'Online' if profile.is_online else 'Offline' }}</span>
+      </button>
+      {% endif %}
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      {% for label, value, icon, color in [
+        ('Pending Jobs', pending, 'fas fa-clock', '#d97706'),
+        ('Active Jobs', active, 'fas fa-running', '#059669'),
+        ('Completed', completed, 'fas fa-check-circle', '#2563eb'),
+        ('Balance', '₦'+"{:,.0f}".format(profile.earnings_balance), 'fas fa-wallet', '#C9A84C')
+      ] %}
+      <div class="card-glam p-5">
+        <div class="flex items-center justify-between mb-2">
+          <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; color:#6B5E52; font-weight:600;">{{ label }}</div>
+          <i class="{{ icon }}" style="color:{{ color }};"></i>
+        </div>
+        <div style="font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:700; color:{{ color }};">{{ value }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Rating & Tier -->
+    <div class="grid md:grid-cols-2 gap-5 mb-8">
+      <div class="card-glam p-5">
+        <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:#C9A84C; font-weight:700; margin-bottom:12px;">Your Rating</div>
+        <div class="flex items-center gap-3">
+          <div style="font-family:'Playfair Display',serif; font-size:2.4rem; font-weight:700; color:#1A1410;">{{ "%.1f"|format(profile.rating) }}</div>
+          <div>
+            <div style="color:#f59e0b; font-size:1.1rem;">{{ '★' * (profile.rating|int) }}{{ '☆' * (5 - profile.rating|int) }}</div>
+            <div style="color:#6B5E52; font-size:0.8rem;">{{ profile.total_reviews }} reviews</div>
+          </div>
+        </div>
+      </div>
+      <div class="card-glam p-5">
+        <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:#C9A84C; font-weight:700; margin-bottom:12px;">Service Tier</div>
+        <div class="flex items-center gap-3">
+          <span class="badge-tier-{{ profile.tier }} px-3 py-1.5 rounded text-sm font-semibold">{{ profile.tier|capitalize }}</span>
+          <div style="font-size:0.85rem; color:#6B5E52;">{{ profile.specialties or 'Set your specialties in profile' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Jobs -->
+    <div class="card-glam p-6">
+      <div class="flex items-center justify-between mb-5">
+        <h2 style="font-family:'Playfair Display',serif; font-size:1.2rem; font-weight:600;">Recent Jobs</h2>
+        <a href="{{ url_for('provider.jobs') }}" style="color:#C9A84C; font-size:0.85rem; font-weight:600;">View All</a>
+      </div>
+      {% if recent %}
+      <div class="space-y-3">
+        {% for b in recent %}
+        <div class="flex items-center justify-between p-4 rounded" style="background:#FAF6F0; border:1px solid #f0e8df;">
+          <div>
+            <div style="font-weight:600; font-size:0.9rem;">{{ b.service.name }}</div>
+            <div style="color:#6B5E52; font-size:0.8rem;">{{ b.client.full_name }} · {{ b.created_at.strftime('%b %d') }}</div>
+          </div>
+          <div class="flex items-center gap-3">
+            {% if b.price %}<span style="font-weight:600; font-size:0.9rem;">₦{{ "{:,.0f}".format(b.price) }}</span>{% endif %}
+            <span class="status-badge status-{{ b.status }}">{{ b.status.replace('_',' ') }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="text-center py-10" style="color:#6B5E52;"><i class="fas fa-briefcase" style="font-size:2rem; color:#d4c4b0; display:block; margin-bottom:10px;"></i>No jobs yet. <a href="{{ url_for('provider.available_jobs') }}" style="color:#C9A84C; font-weight:600;">Browse available jobs.</a></div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function toggleAvailability() {
+  fetch('{{ url_for("provider.toggle_availability") }}', { method: 'POST', headers: {'X-CSRFToken': ''} })
+    .then(r => r.json())
+    .then(data => {
+      const btn = document.getElementById('availBtn');
+      const txt = document.getElementById('availText');
+      if (data.is_online) {
+        btn.style.background = '#d1fae5'; btn.style.color = '#065f46';
+        txt.textContent = 'Online';
+      } else {
+        btn.style.background = '#f3f4f6'; btn.style.color = '#6b7280';
+        txt.textContent = 'Offline';
+      }
+      // Update nav badge if present
+      const badge = document.getElementById('availabilityBadge');
+      const badgeText = document.getElementById('availabilityText');
+      if (badge && badgeText) {
+        badgeText.textContent = data.is_online ? 'Online' : 'Offline';
+        badge.className = data.is_online ? 'px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold' : 'px-3 py-1 rounded-full bg-gray-100 text-gray-500 text-xs font-semibold';
+      }
+    });
+}
+</script>
+{% endblock %}

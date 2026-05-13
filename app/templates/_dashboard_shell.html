@@ -1,0 +1,44 @@
+<!-- Dashboard shell with sidebar -->
+<div class="dash-layout flex min-h-screen"
+     style="background:#FAF6F0;">
+
+  <!-- Sidebar -->
+  <aside id="dash-sidebar"
+      style="width:240px; background:#fff; border-right:1px solid #f0e8df; flex-shrink:0;"
+      class="flex flex-col py-6 px-3">
+
+    <div class="px-3 mb-6">
+      <div style="font-size:0.7rem;
+                  text-transform:uppercase;
+                  letter-spacing:0.1em;
+                  color:#C9A84C;
+                  font-weight:700;">
+        {{ sidebar_section }}
+      </div>
+    </div>
+
+    {% for item in sidebar_items %}
+    <a href="{{ item[1] }}"
+       class="sidebar-link {% if request.endpoint == item[2] %}active{% endif %}">
+      <i class="{{ item[0] }}"></i>
+      {{ item[3] }}
+    </a>
+    {% endfor %}
+
+    <div class="mt-auto px-3 pt-6 border-t border-gray-100">
+      <a href="{{ url_for('auth.logout') }}"
+         class="sidebar-link text-red-400 hover:text-red-600">
+        <i class="fas fa-sign-out-alt"></i>
+        Logout
+      </a>
+    </div>
+
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 p-6 md:p-8 overflow-auto">
+    {% block dashboard_content %}
+    {% endblock %}
+  </main>
+
+</div>

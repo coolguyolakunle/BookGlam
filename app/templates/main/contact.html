@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block title %}Contact — BookGlam{% endblock %}
+{% block content %}
+<section style="background:linear-gradient(135deg,#1A1410,#2E1F14); padding:60px 0 50px;">
+  <div class="max-w-7xl mx-auto px-6 text-center">
+    <p style="color:#C9A84C; font-size:0.8rem; letter-spacing:0.12em; text-transform:uppercase; font-weight:600; margin-bottom:10px;">Get in Touch</p>
+    <h1 style="font-family:'Playfair Display',serif; font-size:2.6rem; font-weight:700; color:#fff; margin-bottom:14px;">Contact Us</h1>
+    <p style="color:#c4b49e; max-width:480px; margin:0 auto;">Have a question, feedback, or partnership inquiry? We'd love to hear from you.</p>
+  </div>
+</section>
+
+<section class="py-20 max-w-5xl mx-auto px-6">
+  <div class="grid md:grid-cols-2 gap-12">
+    <!-- Contact Info -->
+    <div>
+      <h2 style="font-family:'Playfair Display',serif; font-size:1.6rem; font-weight:700; margin-bottom:24px;">Reach Us Directly</h2>
+      <div class="space-y-5">
+        {% for icon, label, value in [
+          ('fas fa-envelope','Email','hello@bookglam.ng'),
+          ('fas fa-phone','Phone','+234 800 BOOKGLAM'),
+          ('fas fa-map-marker-alt','Address','Lagos, Nigeria'),
+          ('fab fa-instagram','Instagram','@bookglamng'),
+          ('fab fa-twitter','Twitter','@bookglamng'),
+        ] %}
+        <div class="flex items-center gap-4">
+          <div style="width:44px; height:44px; border-radius:50%; background:rgba(201,168,76,0.12); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <i class="{{ icon }}" style="color:#C9A84C;"></i>
+          </div>
+          <div>
+            <div style="font-size:0.78rem; text-transform:uppercase; letter-spacing:0.06em; color:#9ca3af; font-weight:600;">{{ label }}</div>
+            <div style="font-weight:600; margin-top:1px;">{{ value }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Contact Form -->
+    <div class="card-glam p-8">
+      <h3 style="font-family:'Playfair Display',serif; font-size:1.3rem; font-weight:600; margin-bottom:20px;">Send a Message</h3>
+      <form class="space-y-4" onsubmit="handleSubmit(event)">
+        <div>
+          <label>Your Name</label>
+          <input type="text" placeholder="Amaka Johnson" required />
+        </div>
+        <div>
+          <label>Email Address</label>
+          <input type="email" placeholder="you@example.com" required />
+        </div>
+        <div>
+          <label>Subject</label>
+          <select>
+            <option>General Inquiry</option>
+            <option>Provider Support</option>
+            <option>Client Support</option>
+            <option>Partnership</option>
+            <option>Press / Media</option>
+          </select>
+        </div>
+        <div>
+          <label>Message</label>
+          <textarea rows="4" placeholder="Tell us how we can help…" required></textarea>
+        </div>
+        <button type="submit" class="btn-gold w-full py-3">Send Message</button>
+      </form>
+      <div id="successMsg" class="hidden mt-4 text-center p-4 rounded" style="background:#d1fae5; color:#065f46; font-weight:600;">
+        <i class="fas fa-check-circle mr-2"></i>Message sent! We'll be in touch soon.
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}
+<script>
+function handleSubmit(e) {
+  e.preventDefault();
+  document.getElementById('successMsg').classList.remove('hidden');
+  e.target.style.opacity = '0.4';
+  e.target.style.pointerEvents = 'none';
+}
+</script>
+{% endblock %}

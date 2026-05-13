@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block title %}Manage Users — BookGlam Admin{% endblock %}
+{% block content %}
+<div class="flex min-h-screen" style="background:#FAF6F0;">
+  <aside style="width:230px; background:#1A1410; flex-shrink:0;" class="hidden md:flex flex-col py-6 px-3">
+    <div class="px-3 mb-8">
+      <div style="font-family:'Playfair Display',serif; font-weight:700; font-size:1.2rem; color:#fff;">Book<span style="color:#C9A84C;">Glam</span></div>
+      <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:#C9A84C; font-weight:700; margin-top:4px;">Admin Panel</div>
+    </div>
+    <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link" style="color:#c4b49e;"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a href="{{ url_for('admin.providers') }}" class="sidebar-link" style="color:#c4b49e;"><i class="fas fa-user-check"></i> Providers</a>
+    <a href="{{ url_for('admin.users') }}" class="sidebar-link active" style="color:#c4b49e;"><i class="fas fa-users"></i> Users</a>
+    <a href="{{ url_for('admin.bookings') }}" class="sidebar-link" style="color:#c4b49e;"><i class="fas fa-calendar-alt"></i> Bookings</a>
+    <a href="{{ url_for('admin.withdrawals') }}" class="sidebar-link" style="color:#c4b49e;"><i class="fas fa-money-bill-wave"></i> Withdrawals</a>
+    <a href="{{ url_for('admin.services') }}" class="sidebar-link" style="color:#c4b49e;"><i class="fas fa-cut"></i> Services</a>
+    <div class="mt-auto pt-4" style="border-top:1px solid #2e2520;">
+      <a href="{{ url_for('admin.change_password') }}" class="sidebar-link {% if request.endpoint == 'admin.change_password' %}active{% endif %}" style="color:#c4b49e;"><i class="fas fa-key"></i> Change Password</a>
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link" style="color:#ef6b6b;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+
+  <main class="flex-1 p-6 md:p-8">
+    <div class="mb-8">
+      <h1 style="font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:700;">Manage Users</h1>
+      <p style="color:#6B5E52; margin-top:4px;">{{ users|length }} total registered users</p>
+    </div>
+
+    <div class="card-glam overflow-hidden">
+      {% if users %}
+      <table>
+        <thead><tr><th>User</th><th>Phone</th><th>Role</th><th>Joined</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td>
+              <div class="flex items-center gap-3">
+                <div style="width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,{% if u.role == 'provider' %}#C9A84C,#E8C96B{% elif u.role == 'admin' %}#1A1410,#2E1F14{% else %}#dbeafe,#bfdbfe{% endif %}); display:flex; align-items:center; justify-content:center; font-weight:700; color:{% if u.role == 'admin' %}#C9A84C{% else %}#1d4ed8{% endif %}; font-size:0.85rem; flex-shrink:0;">{{ u.full_name[0] }}</div>
+                <div>
+                  <div style="font-weight:600; font-size:0.875rem;">{{ u.full_name }}</div>
+                  <div style="color:#9ca3af; font-size:0.78rem;">{{ u.email }}</div>
+                </div>
+              </div>
+            </td>
+            <td style="font-size:0.85rem; color:#6B5E52;">{{ u.phone or '—' }}</td>
+            <td>
+              <span style="padding:3px 10px; border-radius:50px; font-size:0.75rem; font-weight:600;
+                {% if u.role == 'admin' %}background:#1A1410; color:#C9A84C;
+                {% elif u.role == 'provider' %}background:linear-gradient(135deg,#fef3c7,#fde68a); color:#92400e;
+                {% else %}background:#dbeafe; color:#1d4ed8;{% endif %}">
+                {{ u.role|capitalize }}
+              </span>
+            </td>
+            <td style="font-size:0.85rem; color:#6B5E52;">{{ u.created_at.strftime('%b %d, %Y') }}</td>
+            <td>
+              <span style="padding:3px 10px; border-radius:50px; font-size:0.75rem; font-weight:600;
+                {% if u.is_active %}background:#d1fae5; color:#065f46;{% else %}background:#fee2e2; color:#991b1b;{% endif %}">
+                {{ 'Active' if u.is_active else 'Disabled' }}
+              </span>
+            </td>
+            <td>
+              {% if u.id != current_user.id %}
+              <form method="POST" action="{{ url_for('admin.toggle_user', user_id=u.id) }}" class="inline">
+                <button type="submit" class="text-xs px-3 py-1.5 rounded font-semibold border transition-all
+                  {% if u.is_active %}border-red-200 text-red-600 hover:bg-red-50{% else %}border-green-200 text-green-700 hover:bg-green-50{% endif %}">
+                  {{ 'Disable' if u.is_active else 'Enable' }}
+                </button>
+              </form>
+              {% else %}
+              <span style="font-size:0.78rem; color:#9ca3af;">You</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="text-center py-14" style="color:#6B5E52;"><i class="fas fa-users" style="font-size:2rem; color:#d4c4b0; display:block; margin-bottom:10px;"></i>No users registered.</div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+{% endblock %}

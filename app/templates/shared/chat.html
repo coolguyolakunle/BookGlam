@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+{% block title %}Chat — Booking #{{ booking.id }} — BookGlam{% endblock %}
+
+{% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+<style>
+  .msg-bubble { max-width: 72%; word-break: break-word; }
+  .msg-mine { margin-left: auto; background: linear-gradient(135deg,#C9A84C,#E8C96B); color: #1A1410; border-radius: 16px 16px 4px 16px; }
+  .msg-theirs { margin-right: auto; background: #fff; color: #1A1410; border-radius: 16px 16px 16px 4px; border: 1px solid #f0e8df; }
+  #chatBox { height: calc(100vh - 300px); min-height: 320px; overflow-y: auto; scroll-behavior: smooth; }
+  #chatBox::-webkit-scrollbar { width: 4px; }
+  #chatBox::-webkit-scrollbar-track { background: transparent; }
+  #chatBox::-webkit-scrollbar-thumb { background: #e5ddd4; border-radius: 2px; }
+  .typing-dot { width: 7px; height: 7px; border-radius: 50%; background: #C9A84C; animation: bounce 1.2s infinite; display: inline-block; }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  .chat-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+  .chat-avatar-fallback { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,#C9A84C,#E8C96B); display:flex; align-items:center; justify-content:center; font-weight:700; color:#1A1410; font-size:0.8rem; flex-shrink:0; }
+  @keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-6px)} }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dash-layout flex min-h-screen" style="background:#FAF6F0;">
+
+  {% if role == 'client' %}
+  <aside id="dash-sidebar" style="width:230px;background:#fff;border-right:1px solid #f0e8df;flex-shrink:0;" class="flex flex-col py-6 px-3">
+    <div class="px-3 mb-6"><div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:#C9A84C; font-weight:700;">Client Panel</div></div>
+    <a href="{{ url_for('client.dashboard') }}" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="{{ url_for('client.book') }}" class="sidebar-link"><i class="fas fa-plus-circle"></i> Book Service</a>
+    <a href="{{ url_for('client.bookings') }}" class="sidebar-link active"><i class="fas fa-calendar-alt"></i> My Bookings</a>
+    <a href="{{ url_for('client.profile') }}" class="sidebar-link"><i class="fas fa-user-circle"></i> Profile</a>
+    <div class="mt-auto pt-4 border-t border-gray-100">
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link" style="color:#ef4444;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+  {% else %}
+  <aside id="dash-sidebar" style="width:230px;background:#fff;border-right:1px solid #f0e8df;flex-shrink:0;" class="flex flex-col py-6 px-3">
+    <div class="px-3 mb-6"><div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:#C9A84C; font-weight:700;">Provider Panel</div></div>
+    <a href="{{ url_for('provider.dashboard') }}" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="{{ url_for('provider.available_jobs') }}" class="sidebar-link"><i class="fas fa-search"></i> Available Jobs</a>
+    <a href="{{ url_for('provider.jobs') }}" class="sidebar-link active"><i class="fas fa-briefcase"></i> My Jobs</a>
+    <a href="{{ url_for('provider.earnings') }}" class="sidebar-link"><i class="fas fa-wallet"></i> Earnings</a>
+    <a href="{{ url_for('provider.profile_page') }}" class="sidebar-link"><i class="fas fa-user-circle"></i> Profile</a>
+    <div class="mt-auto pt-4 border-t border-gray-100">
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link" style="color:#ef4444;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+  {% endif %}
+
+  <main class="flex-1 flex flex-col" style="max-height:100vh; overflow:hidden;">
+
+    <!-- Chat Header -->
+    <div style="background:#fff; border-bottom:1px solid #f0e8df; padding:14px 20px;" class="flex items-center justify-between flex-shrink-0">
+      <div class="flex items-center gap-3">
+        <a href="{% if role == 'client' %}{{ url_for('client.booking_detail', booking_id=booking.id) }}{% else %}{{ url_for('provider.jobs') }}{% endif %}"
+           style="color:#6B5E52;" class="hover:text-gray-900 transition-colors mr-2">
+          <i class="fas fa-arrow-left"></i>
+        </a>
+        <!-- Other party avatar -->
+        {% if role == 'client' and booking.provider and booking.provider.user.avatar %}
+        <img src="{{ booking.provider.user.avatar }}" alt="{{ booking.provider.user.full_name }}" style="width:42px; height:42px; border-radius:50%; object-fit:cover; flex-shrink:0;" />
+        {% elif role == 'provider' and booking.client.avatar %}
+        <img src="{{ booking.client.avatar }}" alt="{{ booking.client.full_name }}" style="width:42px; height:42px; border-radius:50%; object-fit:cover; flex-shrink:0;" />
+        {% else %}
+        <div style="width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg,#C9A84C,#E8C96B); display:flex; align-items:center; justify-content:center; font-weight:700; color:#1A1410; font-family:'Playfair Display',serif; flex-shrink:0;">
+          {% if role == 'client' %}{{ booking.provider.user.full_name[0] if booking.provider else '?' }}{% else %}{{ booking.client.full_name[0] }}{% endif %}
+        </div>
+        {% endif %}
+        <div>
+          <div style="font-weight:700; font-size:0.95rem;">
+            {% if role == 'client' %}
+              {{ booking.provider.user.full_name if booking.provider else 'Awaiting Provider' }}
+            {% else %}
+              {{ booking.client.full_name }}
+            {% endif %}
+          </div>
+          <div style="font-size:0.75rem; color:#6B5E52;">
+            Booking #{{ booking.id }} · {{ booking.service.name }}
+            <span class="status-badge status-{{ booking.status }} ml-2" style="font-size:0.65rem; padding:1px 7px;">{{ booking.status.replace('_',' ') }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <!-- Track button — only for accepted/on_the_way/in_progress -->
+        {% if booking.status in ['accepted','on_the_way','in_progress'] and booking.provider %}
+        <a href="{% if role == 'client' %}{{ url_for('client.track', booking_id=booking.id) }}{% else %}{{ url_for('provider.track', booking_id=booking.id) }}{% endif %}"
+           class="btn-outline-gold px-4 py-1.5 text-xs flex items-center gap-1">
+          <i class="fas fa-map-marker-alt"></i> Live Track
+        </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Messages Area -->
+    <div id="chatBox" class="flex-1 p-5 space-y-3" style="background:#FAF6F0;">
+      {% if not messages %}
+      <div class="text-center py-10" style="color:#9ca3af;">
+        <i class="fas fa-comment-dots" style="font-size:2rem; display:block; margin-bottom:10px; color:#d4c4b0;"></i>
+        <p style="font-size:0.875rem;">No messages yet. Say hello!</p>
+      </div>
+      {% endif %}
+      {% for msg in messages %}
+      <div class="flex items-end gap-2 {% if msg.sender_id == current_user.id %}justify-end{% else %}justify-start{% endif %}" id="msg-{{ msg.id }}">
+        {% if msg.sender_id != current_user.id %}
+          {% if msg.sender.avatar %}
+          <img src="{{ msg.sender.avatar }}" alt="{{ msg.sender.full_name }}" class="chat-avatar" />
+          {% else %}
+          <div class="chat-avatar-fallback">{{ msg.sender.full_name[0] }}</div>
+          {% endif %}
+        {% endif %}
+        <div class="msg-bubble px-4 py-2.5 {% if msg.sender_id == current_user.id %}msg-mine{% else %}msg-theirs{% endif %}">
+          <p style="font-size:0.9rem; line-height:1.5; margin:0;">{{ msg.body }}</p>
+          <div style="font-size:0.7rem; margin-top:4px; opacity:0.6; text-align:{% if msg.sender_id == current_user.id %}right{% else %}left{% endif %};">
+            {{ msg.created_at.strftime('%I:%M %p') }}
+            {% if msg.sender_id == current_user.id %}
+              {% if msg.is_read %}<i class="fas fa-check-double ml-1" style="color:#065f46;"></i>{% else %}<i class="fas fa-check ml-1"></i>{% endif %}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+      <!-- Typing indicator (hidden by default) -->
+      <div id="typingIndicator" class="hidden justify-start">
+        <div class="msg-theirs px-4 py-3 msg-bubble flex items-center gap-1">
+          <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input Area -->
+    <div style="background:#fff; border-top:1px solid #f0e8df; padding:14px 20px;" class="flex-shrink-0">
+      <div class="flex items-end gap-3">
+        <textarea id="msgInput" rows="1"
+          placeholder="Type a message…"
+          style="flex:1; resize:none; border:1.5px solid #e5ddd4; border-radius:24px; padding:10px 16px; font-family:'DM Sans',sans-serif; font-size:0.9rem; outline:none; max-height:120px; overflow-y:auto; transition:border-color 0.2s;"
+          onfocus="this.style.borderColor='#C9A84C'"
+          onblur="this.style.borderColor='#e5ddd4'"
+          onkeydown="handleKey(event)"
+          oninput="autoResize(this)"></textarea>
+        <button onclick="sendMessage()" id="sendBtn"
+          class="btn-gold flex-shrink-0"
+          style="width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; padding:0;">
+          <i class="fas fa-paper-plane" style="font-size:0.9rem;"></i>
+        </button>
+      </div>
+      <div style="font-size:0.72rem; color:#9ca3af; margin-top:6px; text-align:center;">
+        Messages are linked to booking #{{ booking.id }}
+      </div>
+    </div>
+
+  </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const BOOKING_ID = '{{ booking.id }}';
+const USER_ID = Number('{{ current_user.id }}');
+const ROLE = '{{ role }}';
+const CURRENT_USER_AVATAR = {{ current_user.avatar | tojson }};
+const CURRENT_USER_INITIAL = {{ current_user.full_name[0] | tojson }};
+
+const socket = io();
+socket.emit('join_booking', { booking_id: BOOKING_ID });
+
+socket.on('new_message', function(msg) {
+  appendMessage(msg);
+  scrollToBottom();
+  document.getElementById('typingIndicator').classList.add('hidden');
+  document.getElementById('typingIndicator').classList.remove('flex');
+});
+
+function appendMessage(msg) {
+  const isMine = msg.sender_id === USER_ID;
+  const chatBox = document.getElementById('chatBox');
+
+  // Remove empty state if present
+  const empty = chatBox.querySelector('.text-center');
+  if (empty) empty.remove();
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'flex items-end gap-2 ' + (isMine ? 'justify-end' : 'justify-start');
+  wrapper.id = 'msg-' + msg.id;
+  const avatarHtml = isMine ? '' : (
+    msg.sender_avatar
+      ? `<img src="${escapeAttr(msg.sender_avatar)}" alt="${escapeAttr(msg.sender_name || '')}" class="chat-avatar" />`
+      : `<div class="chat-avatar-fallback">${escapeHtml((msg.sender_name || '?').charAt(0))}</div>`
+  );
+  wrapper.innerHTML = `
+    ${avatarHtml}
+    <div class="msg-bubble px-4 py-2.5 ${isMine ? 'msg-mine' : 'msg-theirs'}">
+      <p style="font-size:0.9rem; line-height:1.5; margin:0;">${escapeHtml(msg.body)}</p>
+      <div style="font-size:0.7rem; margin-top:4px; opacity:0.6; text-align:${isMine ? 'right' : 'left'};">
+        ${msg.created_at}
+        ${isMine ? '<i class="fas fa-check ml-1"></i>' : ''}
+      </div>
+    </div>`;
+
+  // Insert before typing indicator
+  const typing = document.getElementById('typingIndicator');
+  chatBox.insertBefore(wrapper, typing);
+}
+
+function sendMessage() {
+  const input = document.getElementById('msgInput');
+  const body = input.value.trim();
+  if (!body) return;
+
+  socket.emit('send_message', {
+    booking_id: BOOKING_ID,
+    sender_id: USER_ID,
+    body: body,
+  });
+
+  input.value = '';
+  autoResize(input);
+  input.focus();
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function scrollToBottom() {
+  const box = document.getElementById('chatBox');
+  box.scrollTop = box.scrollHeight;
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function escapeAttr(str) {
+  return escapeHtml(String(str)).replace(/'/g,'&#39;');
+}
+
+// Scroll to bottom on load
+window.addEventListener('load', scrollToBottom);
+</script>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Services — BookGlam{% endblock %}
+{% block content %}
+<!-- Hero -->
+<section style="background:linear-gradient(135deg,#1A1410,#2E1F14); padding:60px 0 50px;">
+  <div class="max-w-7xl mx-auto px-6 text-center">
+    <p style="color:#C9A84C; font-size:0.8rem; letter-spacing:0.12em; text-transform:uppercase; font-weight:600; margin-bottom:10px;">What We Offer</p>
+    <h1 style="font-family:'Playfair Display',serif; font-size:2.6rem; font-weight:700; color:#fff; margin-bottom:14px;">All Beauty Services</h1>
+    <p style="color:#c4b49e; max-width:500px; margin:0 auto;">Find and book verified professionals across hair, barbing, makeup, nails, and more — at any budget tier.</p>
+  </div>
+</section>
+
+<section class="max-w-7xl mx-auto px-6 py-16">
+  {% for cat in categories %}
+  <div class="mb-14">
+    <div class="flex items-center gap-3 mb-8">
+      <div style="width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg,rgba(201,168,76,0.2),rgba(201,168,76,0.05)); display:flex; align-items:center; justify-content:center;">
+        {% if cat.name == 'Hair' %}<i class="fas fa-cut" style="color:#C9A84C;"></i>
+        {% elif cat.name == 'Barbing' %}<i class="fas fa-user-alt" style="color:#C9A84C;"></i>
+        {% elif cat.name == 'Makeup' %}<i class="fas fa-magic" style="color:#C9A84C;"></i>
+        {% else %}<i class="fas fa-hand-sparkles" style="color:#C9A84C;"></i>{% endif %}
+      </div>
+      <div>
+        <h2 style="font-family:'Playfair Display',serif; font-size:1.6rem; font-weight:700;">{{ cat.name }}</h2>
+        <p style="color:#6B5E52; font-size:0.875rem;">{{ cat.description }}</p>
+      </div>
+    </div>
+    <div class="grid md:grid-cols-3 gap-5">
+      {% for svc in services if svc.category_id == cat.id and svc.is_active %}
+      <div class="card-glam p-6">
+        <h3 style="font-family:'Playfair Display',serif; font-weight:600; font-size:1.1rem; margin-bottom:8px;">{{ svc.name }}</h3>
+        <div style="color:#6B5E52; font-size:0.85rem; margin-bottom:16px;">{{ svc.duration_minutes }} min session</div>
+        <div class="space-y-2 mb-5">
+          {% for tier, price in [('Basic', svc.base_price_basic), ('Standard', svc.base_price_standard), ('Premium', svc.base_price_premium)] %}
+          <div class="flex items-center justify-between">
+            <span class="badge-tier-{{ tier|lower }} px-2 py-0.5 rounded text-xs font-semibold">{{ tier }}</span>
+            <span style="font-weight:600; font-size:0.9rem;">₦{{ "{:,.0f}".format(price) }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        <a href="{{ url_for('auth.signup') }}" class="btn-gold block text-center py-2.5 text-sm">Book Now</a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</section>
+{% endblock %}

@@ -1,0 +1,40 @@
+<footer style="background:#1A1410; color:#c4b49e;" class="mt-20">
+  <div class="max-w-7xl mx-auto px-6 py-14 grid grid-cols-1 md:grid-cols-4 gap-10">
+    <div class="md:col-span-2">
+      <div class="bg-white mb-4 p-3 rounded-xl inline-flex items-center">
+        <a href="{{ url_for('main.index') }}" class="flex items-center gap-2">
+          <img src="{{ url_for('static', filename='img/bookglam.png') }}"
+              alt="bookglam logo"
+              class="h-20 md:h-18 w-auto object-contain transition-transform duration-300 hover:scale-105"/>
+        </a>
+      </div>
+      <p style="font-size:0.9rem; line-height:1.7; max-width:320px;">Nigeria's on-demand beauty platform connecting clients with verified stylists, barbers, makeup artists, and nail technicians — instantly.</p>
+      <div class="flex gap-4 mt-5">
+        <a href="#" style="color:#C9A84C;" class="hover:opacity-80 transition-opacity"><i class="fab fa-instagram text-lg"></i></a>
+        <a href="#" style="color:#C9A84C;" class="hover:opacity-80 transition-opacity"><i class="fab fa-twitter text-lg"></i></a>
+        <a href="#" style="color:#C9A84C;" class="hover:opacity-80 transition-opacity"><i class="fab fa-facebook text-lg"></i></a>
+        <a href="#" style="color:#C9A84C;" class="hover:opacity-80 transition-opacity"><i class="fab fa-tiktok text-lg"></i></a>
+      </div>
+    </div>
+    <div>
+      <div style="color:#fff; font-weight:600; margin-bottom:12px; font-size:0.9rem; letter-spacing:0.05em; text-transform:uppercase;">Platform</div>
+      <ul style="font-size:0.875rem; space-y:8px;" class="space-y-2">
+        <li><a href="{{ url_for('main.services') }}" class="hover:text-white transition-colors">Services</a></li>
+        <li><a href="{{ url_for('main.how_it_works') }}" class="hover:text-white transition-colors">How It Works</a></li>
+        <li><a href="{{ url_for('auth.signup') }}" class="hover:text-white transition-colors">Join as Provider</a></li>
+        <li><a href="{{ url_for('main.about') }}" class="hover:text-white transition-colors">About Us</a></li>
+      </ul>
+    </div>
+    <div>
+      <div style="color:#fff; font-weight:600; margin-bottom:12px; font-size:0.9rem; letter-spacing:0.05em; text-transform:uppercase;">Contact</div>
+      <ul style="font-size:0.875rem;" class="space-y-2">
+        <li><i class="fas fa-envelope mr-2" style="color:#C9A84C;"></i>hello@bookglam.ng</li>
+        <li><i class="fas fa-phone mr-2" style="color:#C9A84C;"></i>+234 800 BOOKGLAM</li>
+        <li><i class="fas fa-map-marker-alt mr-2" style="color:#C9A84C;"></i>Lagos, Nigeria</li>
+      </ul>
+    </div>
+  </div>
+  <div style="border-top:1px solid #2e2520;" class="px-6 py-5 text-center text-xs" style="color:#7a6a5a;">
+    &copy; {{ 2026 }} BookGlam Nigeria Ltd. All rights reserved.
+  </div>
+</footer>

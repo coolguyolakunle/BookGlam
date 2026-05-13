@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Services — BookGlam Admin{% endblock %}
+{% block content %}
+<div class="flex min-h-screen" style="background:#FAF6F0;">
+  <aside style="width:230px; background:#1A1410; flex-shrink:0;" class="hidden md:flex flex-col py-6 px-3">
+    <div class="px-3 mb-8">
+      <div style="font-family:'Playfair Display',serif; font-weight:700; font-size:1.2rem; color:#fff;">Book<span style="color:#C9A84C;">Glam</span></div>
+      <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:#C9A84C; font-weight:700; margin-top:4px;">Admin Panel</div>
+    </div>
+    <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link" style="color:#c4b49e;"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a href="{{ url_for('admin.providers') }}" class="sidebar-link" style="color:#c4b49e;"><i class="fas fa-user-check"></i> Providers</a>
+    <a href="{{ url_for('admin.users') }}" class="sidebar-link" style="color:#c4b49e;"><i class="fas fa-users"></i> Users</a>
+    <a href="{{ url_for('admin.bookings') }}" class="sidebar-link" style="color:#c4b49e;"><i class="fas fa-calendar-alt"></i> Bookings</a>
+    <a href="{{ url_for('admin.withdrawals') }}" class="sidebar-link" style="color:#c4b49e;"><i class="fas fa-money-bill-wave"></i> Withdrawals</a>
+    <a href="{{ url_for('admin.services') }}" class="sidebar-link active" style="color:#c4b49e;"><i class="fas fa-cut"></i> Services</a>
+    <div class="mt-auto pt-4" style="border-top:1px solid #2e2520;">
+      <a href="{{ url_for('admin.change_password') }}" class="sidebar-link {% if request.endpoint == 'admin.change_password' %}active{% endif %}" style="color:#c4b49e;"><i class="fas fa-key"></i> Change Password</a>
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link" style="color:#ef6b6b;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+
+  <main class="flex-1 p-6 md:p-8">
+    <div class="mb-8">
+      <h1 style="font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:700;">Service Catalogue</h1>
+      <p style="color:#6B5E52; margin-top:4px;">All service categories and their offerings</p>
+    </div>
+
+    {% for cat in categories %}
+    <div class="card-glam overflow-hidden mb-6">
+      <div class="p-5 flex items-center gap-3" style="background:linear-gradient(135deg,#1A1410,#2E1F14);">
+        <div style="width:38px; height:38px; border-radius:50%; background:rgba(201,168,76,0.2); display:flex; align-items:center; justify-content:center;">
+          {% if cat.name == 'Hair' %}<i class="fas fa-cut" style="color:#C9A84C;"></i>
+          {% elif cat.name == 'Barbing' %}<i class="fas fa-user-alt" style="color:#C9A84C;"></i>
+          {% elif cat.name == 'Makeup' %}<i class="fas fa-magic" style="color:#C9A84C;"></i>
+          {% else %}<i class="fas fa-hand-sparkles" style="color:#C9A84C;"></i>{% endif %}
+        </div>
+        <div>
+          <div style="font-family:'Playfair Display',serif; font-weight:700; color:#fff; font-size:1.1rem;">{{ cat.name }}</div>
+          <div style="color:#8a7a6a; font-size:0.8rem;">{{ cat.description }}</div>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>Service</th><th>Basic Price</th><th>Standard Price</th><th>Premium Price</th><th>Duration</th><th>Status</th></tr></thead>
+        <tbody>
+          {% for svc in services if svc.category_id == cat.id %}
+          <tr>
+            <td style="font-weight:600;">{{ svc.name }}</td>
+            <td>₦{{ "{:,.0f}".format(svc.base_price_basic) }}</td>
+            <td>₦{{ "{:,.0f}".format(svc.base_price_standard) }}</td>
+            <td>₦{{ "{:,.0f}".format(svc.base_price_premium) }}</td>
+            <td style="color:#6B5E52;">{{ svc.duration_minutes }} min</td>
+            <td>
+              <span style="padding:3px 10px; border-radius:50px; font-size:0.75rem; font-weight:600;
+                {% if svc.is_active %}background:#d1fae5; color:#065f46;{% else %}background:#fee2e2; color:#991b1b;{% endif %}">
+                {{ 'Active' if svc.is_active else 'Inactive' }}
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endfor %}
+  </main>
+</div>
+{% endblock %}

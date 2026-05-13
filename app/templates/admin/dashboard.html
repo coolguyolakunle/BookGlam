@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard — BookGlam{% endblock %}
+{% block content %}
+<div class="flex min-h-screen" style="background:#FAF6F0;">
+  <aside style="width:230px; background:#1A1410; flex-shrink:0;" class="hidden md:flex flex-col py-6 px-3">
+    <div class="px-3 mb-8">
+      <div style="font-family:'Playfair Display',serif; font-weight:700; font-size:1.2rem; color:#fff;">Book<span style="color:#C9A84C;">Glam</span></div>
+      <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:#C9A84C; font-weight:700; margin-top:4px;">Admin Panel</div>
+    </div>
+    <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}" style="color:#c4b49e;"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a href="{{ url_for('admin.providers') }}" class="sidebar-link {% if request.endpoint == 'admin.providers' %}active{% endif %}" style="color:#c4b49e;"><i class="fas fa-user-check"></i> Providers</a>
+    <a href="{{ url_for('admin.users') }}" class="sidebar-link {% if request.endpoint == 'admin.users' %}active{% endif %}" style="color:#c4b49e;"><i class="fas fa-users"></i> Users</a>
+    <a href="{{ url_for('admin.bookings') }}" class="sidebar-link {% if request.endpoint == 'admin.bookings' %}active{% endif %}" style="color:#c4b49e;"><i class="fas fa-calendar-alt"></i> Bookings</a>
+    <a href="{{ url_for('admin.withdrawals') }}" class="sidebar-link {% if request.endpoint == 'admin.withdrawals' %}active{% endif %}" style="color:#c4b49e;"><i class="fas fa-money-bill-wave"></i> Withdrawals</a>
+    <a href="{{ url_for('admin.services') }}" class="sidebar-link {% if request.endpoint == 'admin.services' %}active{% endif %}" style="color:#c4b49e;"><i class="fas fa-cut"></i> Services</a>
+    <div class="mt-auto pt-4" style="border-top:1px solid #2e2520;">
+      <a href="{{ url_for('admin.change_password') }}" class="sidebar-link {% if request.endpoint == 'admin.change_password' %}active{% endif %}" style="color:#c4b49e;"><i class="fas fa-key"></i> Change Password</a>
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link" style="color:#ef6b6b;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+
+  <main class="flex-1 p-6 md:p-8">
+    <div class="mb-8">
+      <h1 style="font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:700;">Admin Overview</h1>
+      <p style="color:#6B5E52; margin-top:4px;">Platform health at a glance</p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      {% for label, value, icon, color, bg in [
+        ('Total Users', stats.total_users, 'fas fa-users', '#2563eb', '#dbeafe'),
+        ('Providers', stats.total_providers, 'fas fa-user-tie', '#059669', '#d1fae5'),
+        ('Pending Approval', stats.pending_providers, 'fas fa-clock', '#d97706', '#fef3c7'),
+        ('Total Bookings', stats.total_bookings, 'fas fa-calendar-check', '#7c3aed', '#ede9fe'),
+        ('Pending Bookings', stats.pending_bookings, 'fas fa-hourglass-half', '#d97706', '#fef3c7'),
+        ('Completed', stats.completed_bookings, 'fas fa-check-circle', '#059669', '#d1fae5'),
+        ('Pending Withdrawals', stats.pending_withdrawals, 'fas fa-money-bill-wave', '#C9A84C', '#fef9ee'),
+        ('Platform', 'Live', 'fas fa-circle', '#059669', '#d1fae5'),
+      ] %}
+      <div class="card-glam p-5">
+        <div class="flex items-center justify-between mb-3">
+          <div style="width:36px; height:36px; border-radius:8px; background:{{ bg }}; display:flex; align-items:center; justify-content:center;">
+            <i class="{{ icon }}" style="color:{{ color }}; font-size:0.9rem;"></i>
+          </div>
+        </div>
+        <div style="font-family:'Playfair Display',serif; font-size:1.7rem; font-weight:700; color:{{ color }};">{{ value }}</div>
+        <div style="font-size:0.78rem; color:#6B5E52; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-top:2px;">{{ label }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Earnings Banner -->
+    <div class="grid md:grid-cols-3 gap-4 mb-8">
+      <div class="card-glam p-6" style="background:linear-gradient(135deg,#1A1410,#2E1F14); color:#fff;">
+        <div class="flex items-center gap-3 mb-2">
+          <div style="width:36px; height:36px; border-radius:8px; background:rgba(201,168,76,0.2); display:flex; align-items:center; justify-content:center;">
+            <i class="fas fa-chart-line" style="color:#C9A84C; font-size:0.9rem;"></i>
+          </div>
+          <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:#8a7a6a; font-weight:600;">Total Platform Revenue</div>
+        </div>
+        <div style="font-family:'Playfair Display',serif; font-size:1.9rem; font-weight:700; color:#C9A84C;">₦{{ "{:,.0f}".format(stats.total_earnings) }}</div>
+        <div style="font-size:0.78rem; color:#8a7a6a; margin-top:4px;">From all completed bookings</div>
+      </div>
+      <div class="card-glam p-6" style="background:linear-gradient(135deg,#064e3b,#065f46); color:#fff;">
+        <div class="flex items-center gap-3 mb-2">
+          <div style="width:36px; height:36px; border-radius:8px; background:rgba(16,185,129,0.2); display:flex; align-items:center; justify-content:center;">
+            <i class="fas fa-percentage" style="color:#6ee7b7; font-size:0.9rem;"></i>
+          </div>
+          <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:#6ee7b7; font-weight:600;">Platform Commission (15%)</div>
+        </div>
+        <div style="font-family:'Playfair Display',serif; font-size:1.9rem; font-weight:700; color:#a7f3d0;">₦{{ "{:,.0f}".format(stats.platform_commission) }}</div>
+        <div style="font-size:0.78rem; color:#6ee7b7; margin-top:4px;">BookGlam's net earnings</div>
+      </div>
+      <div class="card-glam p-6" style="background:linear-gradient(135deg,#1e1b4b,#312e81); color:#fff;">
+        <div class="flex items-center gap-3 mb-2">
+          <div style="width:36px; height:36px; border-radius:8px; background:rgba(139,92,246,0.2); display:flex; align-items:center; justify-content:center;">
+            <i class="fas fa-arrow-up" style="color:#a78bfa; font-size:0.9rem;"></i>
+          </div>
+          <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:#a78bfa; font-weight:600;">Total Withdrawn by Providers</div>
+        </div>
+        <div style="font-family:'Playfair Display',serif; font-size:1.9rem; font-weight:700; color:#c4b5fd;">₦{{ "{:,.0f}".format(stats.total_withdrawn) }}</div>
+        <div style="font-size:0.78rem; color:#a78bfa; margin-top:4px;">Approved payouts to date</div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="grid md:grid-cols-3 gap-5 mb-8">
+      <a href="{{ url_for('admin.providers') }}?filter=pending" class="card-glam p-5 flex items-center gap-4 hover:shadow-lg transition-shadow">
+        <div style="width:48px; height:48px; border-radius:50%; background:rgba(201,168,76,0.12); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+          <i class="fas fa-user-check" style="color:#C9A84C;"></i>
+        </div>
+        <div>
+          <div style="font-weight:600;">Verify Providers</div>
+          <div style="color:#6B5E52; font-size:0.8rem;">{{ stats.pending_providers }} awaiting review</div>
+        </div>
+        <i class="fas fa-arrow-right ml-auto" style="color:#C9A84C; font-size:0.85rem;"></i>
+      </a>
+      <a href="{{ url_for('admin.withdrawals') }}" class="card-glam p-5 flex items-center gap-4 hover:shadow-lg transition-shadow">
+        <div style="width:48px; height:48px; border-radius:50%; background:rgba(201,168,76,0.12); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+          <i class="fas fa-money-bill-wave" style="color:#C9A84C;"></i>
+        </div>
+        <div>
+          <div style="font-weight:600;">Process Withdrawals</div>
+          <div style="color:#6B5E52; font-size:0.8rem;">{{ stats.pending_withdrawals }} pending</div>
+        </div>
+        <i class="fas fa-arrow-right ml-auto" style="color:#C9A84C; font-size:0.85rem;"></i>
+      </a>
+      <a href="{{ url_for('admin.bookings') }}?status=disputed" class="card-glam p-5 flex items-center gap-4 hover:shadow-lg transition-shadow">
+        <div style="width:48px; height:48px; border-radius:50%; background:rgba(239,68,68,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+          <i class="fas fa-exclamation-triangle" style="color:#ef4444;"></i>
+        </div>
+        <div>
+          <div style="font-weight:600;">Dispute Resolution</div>
+          <div style="color:#6B5E52; font-size:0.8rem;">Review flagged bookings</div>
+        </div>
+        <i class="fas fa-arrow-right ml-auto" style="color:#C9A84C; font-size:0.85rem;"></i>
+      </a>
+    </div>
+
+    <!-- Recent Bookings -->
+    <div class="card-glam overflow-hidden">
+      <div class="p-5 flex items-center justify-between" style="border-bottom:1px solid #f0e8df;">
+        <h2 style="font-family:'Playfair Display',serif; font-size:1.2rem; font-weight:600;">Recent Bookings</h2>
+        <a href="{{ url_for('admin.bookings') }}" style="color:#C9A84C; font-size:0.85rem; font-weight:600;">View All</a>
+      </div>
+      {% if recent_bookings %}
+      <table>
+        <thead><tr><th>#</th><th>Client</th><th>Service</th><th>Provider</th><th>Price</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody>
+          {% for b in recent_bookings %}
+          <tr>
+            <td style="color:#9ca3af; font-size:0.8rem;">#{{ b.id }}</td>
+            <td style="font-weight:600; font-size:0.875rem;">{{ b.client.full_name }}</td>
+            <td style="font-size:0.875rem;">{{ b.service.name }}</td>
+            <td style="font-size:0.875rem;">{{ b.provider.user.full_name if b.provider else '—' }}</td>
+            <td style="font-weight:600; font-size:0.875rem;">{% if b.price %}₦{{ "{:,.0f}".format(b.price) }}{% else %}—{% endif %}</td>
+            <td><span class="status-badge status-{{ b.status }}">{{ b.status.replace('_',' ') }}</span></td>
+            <td style="color:#6B5E52; font-size:0.8rem;">{{ b.created_at.strftime('%b %d, %Y') }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="text-center py-12" style="color:#6B5E52;"><i class="fas fa-calendar-alt" style="font-size:2rem; color:#d4c4b0; display:block; margin-bottom:10px;"></i>No bookings yet.</div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+{% endblock %}
