@@ -5,6 +5,10 @@ from dotenv import load_dotenv
 import cloudinary
 
 
+def _env_truthy(name):
+    return os.getenv(name, "").strip().lower() in ("1", "true", "yes", "on")
+
+
 def create_app(config_name='default'):
     load_dotenv()
 
@@ -61,8 +65,44 @@ def create_app(config_name='default'):
     with app.app_context():
         db.create_all()
         _seed_categories(db)
+        _seed_admin_from_env()
+        if _env_truthy("SEED_DUMMY_DATA") or _env_truthy("SEED_DUMMY_PROVIDERS"):
+            from seed_dummy_providers import seed_dummy_providers
+            seed_dummy_providers()
 
     return app
+
+
+def _seed_admin_from_env():
+    from app.models import User
+
+    admin_email = os.getenv("ADMIN_EMAIL", "").strip().lower()
+    admin_password = os.getenv("ADMIN_PASSWORD", "")
+    admin_name = os.getenv("ADMIN_NAME", "BookGlam Admin").strip()
+    reset_password = _env_truthy("RESET_ADMIN_PASSWORD")
+
+    if not admin_email or not admin_password:
+        return
+
+    existing = User.query.filter_by(email=admin_email).first()
+    if existing:
+        existing.role = "admin"
+        existing.full_name = admin_name or existing.full_name
+        existing.is_active = True
+        if reset_password:
+            existing.password_hash = bcrypt.generate_password_hash(admin_password).decode("utf-8")
+        db.session.commit()
+        return
+
+    admin = User(
+        full_name=admin_name,
+        email=admin_email,
+        password_hash=bcrypt.generate_password_hash(admin_password).decode("utf-8"),
+        role="admin",
+        is_active=True,
+    )
+    db.session.add(admin)
+    db.session.commit()
 
 
 def _seed_categories(db):

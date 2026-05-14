@@ -79,6 +79,17 @@ Admin credentials:
 - **Email:** admin@bookglam.ng
 - **Password:** Admin@1234
 
+On Render, set these environment variables instead of relying on your local `.env` file:
+
+```bash
+ADMIN_NAME=BookGlam Admin
+ADMIN_EMAIL=admin@bookglam.ng
+ADMIN_PASSWORD=your-secure-password
+SEED_DUMMY_DATA=true
+```
+
+The app creates or repairs the admin account on startup when `ADMIN_EMAIL` and `ADMIN_PASSWORD` are present. Dummy providers are only seeded when `SEED_DUMMY_DATA=true` or `SEED_DUMMY_PROVIDERS=true`.
+
 ---
 
 ## User Roles & Access

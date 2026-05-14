@@ -1,51 +1,61 @@
 """
-Run this once to create the first admin account.
+Create or repair the first admin account.
 Usage: python seed_admin.py
+
+Required environment variables:
+- ADMIN_EMAIL
+- ADMIN_PASSWORD
+
+Optional:
+- ADMIN_NAME
+- RESET_ADMIN_PASSWORD=true
 """
 
 import os
+
 from dotenv import load_dotenv
 
 from app import create_app
-from app.extensions import db, bcrypt
+from app.extensions import bcrypt, db
 from app.models import User
 
-# Load .env variables
+
 load_dotenv()
 
 app = create_app()
 
 with app.app_context():
+    admin_name = os.getenv("ADMIN_NAME", "BookGlam Admin").strip()
+    admin_email = os.getenv("ADMIN_EMAIL", "").strip().lower()
+    admin_password = os.getenv("ADMIN_PASSWORD", "")
+    reset_password = os.getenv("RESET_ADMIN_PASSWORD", "").strip().lower() in ("1", "true", "yes")
 
-    ADMIN_NAME = os.getenv("ADMIN_NAME")
-    ADMIN_EMAIL = os.getenv("ADMIN_EMAIL")
-    ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
+    if not admin_email or not admin_password:
+        print("Missing admin credentials. Set ADMIN_EMAIL and ADMIN_PASSWORD.")
+        raise SystemExit(1)
 
-    if not ADMIN_EMAIL or not ADMIN_PASSWORD:
-        print("❌ Missing admin credentials in .env")
-        exit()
-
-    # Check if admin exists
-    existing = User.query.filter_by(email=ADMIN_EMAIL).first()
+    existing = User.query.filter_by(email=admin_email).first()
 
     if existing:
-        print("✅ Admin already exists.")
+        existing.role = "admin"
+        existing.full_name = admin_name or existing.full_name
+        existing.is_active = True
+        if reset_password:
+            existing.password_hash = bcrypt.generate_password_hash(admin_password).decode("utf-8")
+            print("Admin already exists. Password reset.")
+        else:
+            print("Admin already exists. Set RESET_ADMIN_PASSWORD=true to reset the password.")
+        db.session.commit()
     else:
-        hashed = bcrypt.generate_password_hash(
-            ADMIN_PASSWORD
-        ).decode("utf-8")
-
         admin = User(
-            full_name=ADMIN_NAME,
-            email=ADMIN_EMAIL,
-            password_hash=hashed,
+            full_name=admin_name,
+            email=admin_email,
+            password_hash=bcrypt.generate_password_hash(admin_password).decode("utf-8"),
             role="admin",
+            is_active=True,
         )
-
         db.session.add(admin)
         db.session.commit()
+        print("Admin created.")
 
-        print("✓ Admin created.")
-        print(f"  Email:    {ADMIN_EMAIL}")
-        print("  Password: [Hidden]")
-        print("  Please change the password after first login.")
+    print(f"Email: {admin_email}")

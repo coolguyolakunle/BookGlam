@@ -6,12 +6,8 @@ Usage: python seed_dummy_providers.py
 from datetime import datetime, timedelta
 import random
 
-from app import create_app
 from app.extensions import db, bcrypt
 from app.models import Booking, ProviderPortfolio, ProviderProfile, Review, Service, ServiceCategory, User
-
-
-app = create_app()
 
 
 PHOTO_URLS = [
@@ -98,7 +94,7 @@ def get_or_create_review_client(index):
     return user
 
 
-with app.app_context():
+def seed_dummy_providers():
     random.seed(42)
     services_by_name = {service.name: service for service in Service.query.all()}
     if not services_by_name:
@@ -177,3 +173,11 @@ with app.app_context():
 
     db.session.commit()
     print(f"Seeded {len(PROVIDERS)} dummy providers with portfolios and reviews.")
+
+
+if __name__ == "__main__":
+    from app import create_app
+
+    app = create_app()
+    with app.app_context():
+        seed_dummy_providers()
