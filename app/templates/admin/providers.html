@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% from 'admin/_avatar.html' import admin_avatar %}
 {% block title %}Manage Providers — BookGlam Admin{% endblock %}
 {% block content %}
 <div class="flex min-h-screen" style="background:#FAF6F0;">
@@ -45,7 +46,7 @@
           <tr data-verified="{{ 'verified' if p.is_verified else 'pending' }}">
             <td>
               <div class="flex items-center gap-3">
-                <div style="width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg,#C9A84C,#E8C96B); display:flex; align-items:center; justify-content:center; font-weight:700; color:#1A1410; flex-shrink:0;">{{ p.user.full_name[0] }}</div>
+                {{ admin_avatar(p.user, 38) }}
                 <div>
                   <div style="font-weight:600; font-size:0.875rem;">{{ p.user.full_name }}</div>
                   <div style="color:#9ca3af; font-size:0.78rem;">{{ p.user.email }}</div>

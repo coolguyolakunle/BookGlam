@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% from 'admin/_avatar.html' import admin_avatar %}
 {% block title %}Admin Dashboard — BookGlam{% endblock %}
 {% block content %}
 <div class="flex min-h-screen" style="background:#FAF6F0;">
@@ -130,9 +131,23 @@
           {% for b in recent_bookings %}
           <tr>
             <td style="color:#9ca3af; font-size:0.8rem;">#{{ b.id }}</td>
-            <td style="font-weight:600; font-size:0.875rem;">{{ b.client.full_name }}</td>
+            <td>
+              <div class="flex items-center gap-3">
+                {{ admin_avatar(b.client, 32) }}
+                <div style="font-weight:600; font-size:0.875rem;">{{ b.client.full_name }}</div>
+              </div>
+            </td>
             <td style="font-size:0.875rem;">{{ b.service.name }}</td>
-            <td style="font-size:0.875rem;">{{ b.provider.user.full_name if b.provider else '—' }}</td>
+            <td>
+              {% if b.provider %}
+              <div class="flex items-center gap-3">
+                {{ admin_avatar(b.provider.user, 32) }}
+                <div style="font-weight:600; font-size:0.875rem;">{{ b.provider.user.full_name }}</div>
+              </div>
+              {% else %}
+              <span style="color:#9ca3af; font-size:0.875rem;">—</span>
+              {% endif %}
+            </td>
             <td style="font-weight:600; font-size:0.875rem;">{% if b.price %}₦{{ "{:,.0f}".format(b.price) }}{% else %}—{% endif %}</td>
             <td><span class="status-badge status-{{ b.status }}">{{ b.status.replace('_',' ') }}</span></td>
             <td style="color:#6B5E52; font-size:0.8rem;">{{ b.created_at.strftime('%b %d, %Y') }}</td>

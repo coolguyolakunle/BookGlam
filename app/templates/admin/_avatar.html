@@ -1,0 +1,10 @@
+{% macro admin_avatar(user, size=38) %}
+  {% set role = user.role if user and user.role else 'client' %}
+  {% set bg = '#C9A84C,#E8C96B' if role == 'provider' else '#1A1410,#2E1F14' if role == 'admin' else '#dbeafe,#bfdbfe' %}
+  {% set color = '#C9A84C' if role == 'admin' else '#1A1410' if role == 'provider' else '#1d4ed8' %}
+  {% if user and user.avatar %}
+  <img src="{{ user.avatar }}" alt="{{ user.full_name }}" style="width:{{ size }}px; height:{{ size }}px; border-radius:50%; object-fit:cover; flex-shrink:0; border:1px solid rgba(201,168,76,0.35);" />
+  {% else %}
+  <div style="width:{{ size }}px; height:{{ size }}px; border-radius:50%; background:linear-gradient(135deg,{{ bg }}); display:flex; align-items:center; justify-content:center; font-weight:700; color:{{ color }}; font-size:{{ (size * 0.38)|round(1) }}px; flex-shrink:0;">{{ user.full_name[0] if user and user.full_name else '?' }}</div>
+  {% endif %}
+{% endmacro %}

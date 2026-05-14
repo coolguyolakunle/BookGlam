@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% from 'admin/_avatar.html' import admin_avatar %}
 {% block title %}Manage Bookings — BookGlam Admin{% endblock %}
 {% block content %}
 <div class="flex min-h-screen" style="background:#FAF6F0;">
@@ -48,11 +49,25 @@
           <tr>
             <td style="color:#9ca3af; font-size:0.8rem;">#{{ b.id }}</td>
             <td>
-              <div style="font-weight:600; font-size:0.875rem;">{{ b.client.full_name }}</div>
-              <div style="color:#9ca3af; font-size:0.75rem;">{{ b.client.phone or '' }}</div>
+              <div class="flex items-center gap-3">
+                {{ admin_avatar(b.client, 34) }}
+                <div>
+                  <div style="font-weight:600; font-size:0.875rem;">{{ b.client.full_name }}</div>
+                  <div style="color:#9ca3af; font-size:0.75rem;">{{ b.client.phone or '' }}</div>
+                </div>
+              </div>
             </td>
             <td style="font-size:0.875rem;">{{ b.service.name }}</td>
-            <td style="font-size:0.875rem;">{{ b.provider.user.full_name if b.provider else '<span style="color:#9ca3af;">Unassigned</span>' | safe }}</td>
+            <td>
+              {% if b.provider %}
+              <div class="flex items-center gap-3">
+                {{ admin_avatar(b.provider.user, 34) }}
+                <div style="font-weight:600; font-size:0.875rem;">{{ b.provider.user.full_name }}</div>
+              </div>
+              {% else %}
+              <span style="color:#9ca3af; font-size:0.875rem;">Unassigned</span>
+              {% endif %}
+            </td>
             <td><span style="font-size:0.8rem;">{% if b.booking_type == 'home' %}<i class="fas fa-home mr-1" style="color:#C9A84C;"></i>{% else %}<i class="fas fa-store mr-1" style="color:#C9A84C;"></i>{% endif %}{{ b.booking_type|capitalize }}</span></td>
             <td style="font-weight:600; font-size:0.875rem;">{% if b.price %}₦{{ "{:,.0f}".format(b.price) }}{% else %}—{% endif %}</td>
             <td><span class="status-badge status-{{ b.status }}">{{ b.status.replace('_',' ') }}</span></td>
